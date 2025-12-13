@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Profile & Orders</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- PROFILE SECTION -->
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+        <!-- Cover -->
+        <div
+          class="h-32 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative"
+        >
+          <div class="absolute inset-0 bg-black opacity-10"></div>
+        </div>
+
+        <!-- Profile content -->
+        <div class="relative px-6 pb-6">
+          <div
+            class="flex flex-col sm:flex-row items-center sm:items-end -mt-12"
+          >
+            <!-- Avatar -->
+            <div class="relative">
+              <img
+                src="https://ui-avatars.com/api/?name=John+Doe&size=140&background=4F46E5&color=fff&bold=true"
+                alt="Profile"
+                class="w-28 h-28 rounded-full border-4 border-white shadow-xl"
+              />
+            </div>
+
+            <!-- Info + Edit button -->
+            <div class="mt-4 sm:mt-0 sm:ml-6 flex-1 text-center sm:text-left">
+              <div
+                class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <h1 id="profileName" class="text-2xl font-bold text-gray-900">
+                    John Doe
+                  </h1>
+                  <p id="profileEmail" class="text-gray-600 mt-1">
+                    john.doe@example.com
+                  </p>
+                  <p id="profileLocation" class="text-sm text-gray-500 mt-1">
+                    <i class="fas fa-map-marker-alt mr-1"></i> Mumbai,
+                    Maharashtra, India
+                  </p>
+                </div>
+                <button
+                  id="editProfileBtn"
+                  class="mt-4 sm:mt-0 px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md font-medium"
+                >
+                  <i class="fas fa-edit mr-2"></i> Edit Profile
+                </button>
+              </div>
+
+              <!-- Stats -->
+              <div class="flex justify-center sm:justify-start gap-6 mt-6">
+                <div class="text-center">
+                  <p class="text-xl font-bold text-gray-900">28</p>
+                  <p class="text-sm text-gray-600">Total Orders</p>
+                </div>
+                <div class="h-10 w-px bg-gray-300"></div>
+                <div class="text-center">
+                  <p class="text-xl font-bold text-green-600">24</p>
+                  <p class="text-sm text-gray-600">Delivered</p>
+                </div>
+                <div class="h-10 w-px bg-gray-300"></div>
+                <div class="text-center">
+                  <p class="text-xl font-bold text-indigo-600">₹45,230</p>
+                  <p class="text-sm text-gray-600">Total Spent</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- EDIT PROFILE FORM (TOGGLE) -->
+          <div id="editProfileForm" class="mt-6 hidden border-t pt-4">
+            <h2 class="text-lg font-semibold text-gray-900 mb-3">
+              Edit Profile
+            </h2>
+            <form class="space-y-4">
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1"
+                    >Name</label
+                  >
+                  <input
+                    id="inputName"
+                    type="text"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    value="John Doe"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1"
+                    >Email</label
+                  >
+                  <input
+                    id="inputEmail"
+                    type="email"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    value="john.doe@example.com"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1"
+                  >Location</label
+                >
+                <input
+                  id="inputLocation"
+                  type="text"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  value="Mumbai, Maharashtra, India"
+                />
+              </div>
+              <div class="flex gap-3 justify-end">
+                <button
+                  id="cancelEditBtn"
+                  type="button"
+                  class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  id="saveProfileBtn"
+                  type="button"
+                  class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS SECTION -->
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Your Orders</h2>
+
+        <!-- Order 1 -->
+        <div class="bg-white rounded-xl shadow-md mb-4 overflow-hidden">
+          <div class="border-l-4 border-green-500">
+            <div
+              class="bg-gray-50 px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+            >
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">
+                  Order ID
+                </p>
+                <p class="font-semibold text-gray-900">#ORD-2024-1247</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">
+                  Placed On
+                </p>
+                <p class="font-medium text-gray-900">Dec 10, 2025</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">
+                  Total Amount
+                </p>
+                <p class="font-bold text-gray-900">₹2,450.00</p>
+              </div>
+              <span
+                class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold"
+              >
+                <i class="fas fa-check-circle mr-1"></i> Delivered
+              </span>
+            </div>
+
+            <div class="p-4 flex items-center gap-4">
+              <img
+                src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&h=150&fit=crop"
+                alt="Product"
+                class="w-16 h-16 object-cover rounded-lg shadow-sm"
+              />
+              <div class="flex-1">
+                <h3 class="font-semibold text-gray-900">
+                  Nike Air Max Running Shoes
+                </h3>
+                <p class="text-sm text-gray-600">Size: 9 | Color: Black</p>
+                <p class="text-xs text-gray-500">Qty: 1</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order 2 -->
+        <div class="bg-white rounded-xl shadow-md mb-4 overflow-hidden">
+          <div class="border-l-4 border-blue-500">
+            <div
+              class="bg-gray-50 px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+            >
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">
+                  Order ID
+                </p>
+                <p class="font-semibold text-gray-900">#ORD-2024-1246</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">
+                  Placed On
+                </p>
+                <p class="font-medium text-gray-900">Dec 11, 2025</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">
+                  Total Amount
+                </p>
+                <p class="font-bold text-gray-900">₹5,890.00</p>
+              </div>
+              <span
+                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold"
+              >
+                <i class="fas fa-shipping-fast mr-1"></i> Shipped
+              </span>
+            </div>
+
+            <div class="p-4">
+              <p class="text-sm text-gray-700 mb-2">
+                Order is on the way. Expected delivery:
+                <span class="font-semibold">Dec 14</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIMPLE JS FOR EDIT PROFILE -->
+    <script>
+      const editBtn = document.getElementById("editProfileBtn");
+      const cancelBtn = document.getElementById("cancelEditBtn");
+      const saveBtn = document.getElementById("saveProfileBtn");
+      const form = document.getElementById("editProfileForm");
+
+      const profileName = document.getElementById("profileName");
+      const profileEmail = document.getElementById("profileEmail");
+      const profileLocation = document.getElementById("profileLocation");
+
+      const inputName = document.getElementById("inputName");
+      const inputEmail = document.getElementById("inputEmail");
+      const inputLocation = document.getElementById("inputLocation");
+
+      editBtn.addEventListener("click", () => {
+        form.classList.remove("hidden");
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        form.classList.add("hidden");
+      });
+
+      saveBtn.addEventListener("click", () => {
+        profileName.textContent = inputName.value;
+        profileEmail.textContent = inputEmail.value;
+        profileLocation.innerHTML =
+          '<i class="fas fa-map-marker-alt mr-1"></i> ' + inputLocation.value;
+        form.classList.add("hidden");
+      });
+    </script>
+  </body>
+</html>
