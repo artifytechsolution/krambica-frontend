@@ -1,11 +1,13 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const CollectionsSlider = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const router = useRouter();
 
   const collections = [
     {
@@ -136,7 +138,10 @@ const CollectionsSlider = () => {
                       <p className="text-white text-xs md:text-sm mb-3 md:mb-5 font-light">
                         Get 7% OFF* | Use Code: {collection.code}
                       </p>
-                      <button className="bg-[#115e59] text-white px-6 md:px-8 lg:px-10 py-2.5 md:py-3 lg:py-3.5 text-xs md:text-sm font-semibold uppercase tracking-widest border-2 border-[#115e59] transition-all duration-300 hover:bg-[#134e4a] hover:border-[#134e4a]">
+                      <button
+                        onClick={() => router.push("/shop")}
+                        className="bg-[#115e59] text-white px-6 md:px-8 lg:px-10 py-2.5 md:py-3 lg:py-3.5 text-xs md:text-sm font-semibold uppercase tracking-widest border-2 border-[#115e59] transition-all duration-300 hover:bg-[#134e4a] hover:border-[#134e4a]"
+                      >
                         SHOP NOW
                       </button>
                     </div>

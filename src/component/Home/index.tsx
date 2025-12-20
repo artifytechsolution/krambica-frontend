@@ -18,6 +18,18 @@ import {
   Phone,
   Mail,
   Clock,
+  Zap,
+  Bell,
+  ShieldCheck,
+  Download,
+  QrCode,
+  ShoppingBag,
+  ArrowRight,
+  Home,
+  Smartphone,
+  Check,
+  Quote,
+  ArrowLeft,
 } from "lucide-react";
 import HeroCarousel from "./components/HeroCarousel";
 import IntroSection from "./components/Intriduction";
@@ -26,17 +38,39 @@ import BestsellerSection from "./components/BestsellerSection";
 import CollectionsSlider from "./components/CollectionsSlider";
 import VideoCarousel from "./components/VideoCarousel";
 
-// Hero Carousel Component
-
-// Introduction Section
-
-// Trending Section with Horizontal Scroll
-
-// Product Card Component
-
-// Bestseller Section
-
-// Collections Slider
+// Add global styles at the top level
+const globalStyles = `
+  @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lato:wght@300;400;700&display=swap");
+  
+  /* Apply Cinzel to all heading elements */
+  h1, h2, h3, h4, h5, h6,
+  .font-display,
+  .hero-title,
+  .section-title,
+  .product-title,
+  .collection-title,
+  .testimonial-name {
+    font-family: "Cinzel", serif;
+  }
+  
+  /* Apply Lato to body text */
+  body,
+  .font-body,
+  .product-description,
+  .testimonial-text,
+  .section-description {
+    font-family: "Lato", sans-serif;
+  }
+  
+  /* Hide scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`;
 
 // Testimonial Card Component
 const TestimonialCard = ({ testimonial }) => {
@@ -52,10 +86,10 @@ const TestimonialCard = ({ testimonial }) => {
           className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full object-cover border-2 md:border-3 border-[#115e59] shadow-md flex-shrink-0"
         />
         <div className="ml-3 md:ml-4">
-          <h4 className="font-semibold text-base md:text-lg text-gray-900">
+          <h4 className="font-display font-semibold text-base md:text-lg text-gray-900">
             {testimonial.name}
           </h4>
-          <p className="text-xs md:text-sm text-gray-600">
+          <p className="text-xs md:text-sm text-gray-600 font-body">
             {testimonial.location}
           </p>
         </div>
@@ -65,10 +99,10 @@ const TestimonialCard = ({ testimonial }) => {
           <Star key={i} className="w-4 h-4 md:w-5 md:h-5 fill-current" />
         ))}
       </div>
-      <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-3 md:mb-4 relative z-10 flex-grow">
+      <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-3 md:mb-4 relative z-10 flex-grow font-body">
         {testimonial.text}
       </p>
-      <p className="text-xs md:text-sm text-gray-500 border-t border-gray-100 pt-2 md:pt-3 relative z-10">
+      <p className="text-xs md:text-sm text-gray-500 border-t border-gray-100 pt-2 md:pt-3 relative z-10 font-body">
         Purchased: {testimonial.product}
       </p>
     </div>
@@ -77,167 +111,185 @@ const TestimonialCard = ({ testimonial }) => {
 
 // Testimonials Section
 const TestimonialsSection = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  const scrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
   const testimonials = [
     {
+      id: 1,
       name: "Sarah Johnson",
-      location: "New York, USA",
+      role: "Verified Buyer",
       image:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-      text: "Absolutely love my purchase! The quality is outstanding and the fit is perfect. Krambica has become my go-to store for all my fashion needs. Every piece I've ordered has exceeded my expectations!",
-      product: "Floral Summer Dress",
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
+      text: "The fabric quality is simply unmatched at this price point. It drapes beautifully and feels incredibly luxurious against the skin.",
+      product: "Silk Evening Dress",
+      rating: 5,
     },
     {
+      id: 2,
       name: "Emily Davis",
-      location: "Los Angeles, USA",
+      role: "Fashion Editor",
       image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-      text: "The customer service is exceptional! Fast shipping and beautiful packaging. The clothes are even better in person than in photos. I'm so impressed with the attention to detail!",
-      product: "Designer Handbag",
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop",
+      text: "I was skeptical about ordering online, but the packaging alone won me over. A truly premium unboxing experience.",
+      product: "Signature Totebag",
+      rating: 5,
     },
     {
+      id: 3,
       name: "Jessica Martinez",
-      location: "Miami, USA",
+      role: "Loyal Customer",
       image:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop",
-      text: "Premium quality at reasonable prices. I've recommended Krambica to all my friends. The attention to detail is remarkable and the fabrics feel luxurious. Worth every penny!",
-      product: "Silk Blouse",
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop",
+      text: "Finally, a brand that understands modern ethnic wear. The fits are contemporary but the soul is traditional.",
+      product: "Velvet Sharara Set",
+      rating: 5,
     },
     {
+      id: 4,
       name: "Amanda White",
-      location: "Chicago, USA",
+      role: "Verified Buyer",
       image:
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
-      text: "I'm obsessed with everything I've bought! The styles are trendy yet timeless, and the quality is unmatched. Fast delivery and excellent customer support. Highly recommend!",
-      product: "Evening Gown",
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop",
+      text: "Fast shipping and the customer support team was so helpful with sizing. I felt very taken care of.",
+      product: "Summer Floral Set",
+      rating: 4,
     },
     {
+      id: 5,
       name: "Rachel Green",
-      location: "Boston, USA",
+      role: "Influencer",
       image:
-        "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=100&h=100&fit=crop",
-      text: "Best online shopping experience ever! The website is easy to navigate, checkout is smooth, and my order arrived perfectly packaged. The dress fits like a dream!",
-      product: "Maxi Dress Collection",
-    },
-    {
-      name: "Lauren Taylor",
-      location: "Seattle, USA",
-      image:
-        "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop",
-      text: "The fabrics are luxurious and the designs are sophisticated. I feel confident and beautiful wearing Krambica. Their attention to customer satisfaction is truly impressive!",
-      product: "Formal Blazer Set",
+        "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop",
+      text: "Every time I wear Krambica, I get compliments. It's my secret weapon for weddings and parties.",
+      product: "Embroidered Lehenga",
+      rating: 5,
     },
   ];
 
-  const getItemsPerView = () => {
-    if (typeof window !== "undefined") {
-      if (window.innerWidth >= 1024) return 3;
-      if (window.innerWidth >= 640) return 2;
-    }
-    return 1;
-  };
-
-  const [itemsPerView, setItemsPerView] = useState(getItemsPerView());
-
-  useEffect(() => {
-    const handleResize = () => setItemsPerView(getItemsPerView());
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const handleTouchStart = (e) => setTouchStart(e.targetTouches[0].clientX);
-  const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
-  const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 75) {
-      setCurrentIndex((prev) =>
-        Math.min(prev + 1, testimonials.length - itemsPerView)
-      );
-    }
-    if (touchStart - touchEnd < -75) {
-      setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     }
   };
 
-  const next = () =>
-    setCurrentIndex((prev) =>
-      Math.min(prev + 1, testimonials.length - itemsPerView)
-    );
-  const prev = () => setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      const { clientWidth } = scrollRef.current;
+      const scrollAmount =
+        direction === "left" ? -clientWidth / 2 : clientWidth / 2;
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   return (
-    <div className="py-8 md:py-12 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-[#115e59] mb-2 md:mb-3 font-serif">
-          What Our Customers Say
-        </h2>
-        <p className="text-center text-gray-600 text-sm md:text-base mb-8 md:mb-10">
-          Real reviews from real customers
-        </p>
-
-        <div className="relative">
-          <div
-            className="overflow-hidden"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div
-              className="flex transition-transform duration-600 ease-in-out"
-              style={{
-                transform: `translateX(-${
-                  currentIndex * (100 / itemsPerView)
-                }%)`,
-              }}
-            >
-              {testimonials.map((testimonial, index) => (
-                <div
-                  key={index}
-                  className="flex-shrink-0 px-2 md:px-3"
-                  style={{ width: `${100 / itemsPerView}%` }}
-                >
-                  <TestimonialCard testimonial={testimonial} />
-                </div>
-              ))}
-            </div>
+    <section className="py-24 bg-white border-t border-gray-100">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
+        {/* --- Minimal Header --- */}
+        <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-8 border-b border-gray-100 pb-8">
+          <div>
+            <h2 className="font-display text-4xl md:text-5xl text-gray-900 tracking-wide mb-3">
+              <b>Client Diaries</b>
+            </h2>
+            <p className="font-body text-gray-500 text-lg font-light tracking-wide">
+              Real stories from our global community.
+            </p>
           </div>
 
-          <button
-            onClick={prev}
-            disabled={currentIndex === 0}
-            className="absolute left-0 md:-left-6 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#115e59] hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10"
-          >
-            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
-
-          <button
-            onClick={next}
-            disabled={currentIndex >= testimonials.length - itemsPerView}
-            className="absolute right-0 md:-right-6 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#115e59] hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10"
-          >
-            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
+          {/* Custom Navigation Arrows */}
+          <div className="flex gap-4">
+            <button
+              onClick={() => scroll("left")}
+              disabled={!canScrollLeft}
+              className={`p-4 rounded-full border transition-all duration-300 ${
+                !canScrollLeft
+                  ? "border-gray-100 text-gray-300 cursor-not-allowed"
+                  : "border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
+              }`}
+            >
+              <ArrowLeft size={20} strokeWidth={1.5} />
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              disabled={!canScrollRight}
+              className={`p-4 rounded-full border transition-all duration-300 ${
+                !canScrollRight
+                  ? "border-gray-100 text-gray-300 cursor-not-allowed"
+                  : "border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
+              }`}
+            >
+              <ArrowRight size={20} strokeWidth={1.5} />
+            </button>
+          </div>
         </div>
 
-        <div className="flex justify-center gap-2 mt-6 md:mt-8">
-          {Array.from({ length: testimonials.length - itemsPerView + 1 }).map(
-            (_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all duration-300 ${
-                  index === currentIndex
-                    ? "bg-[#115e59] w-6 md:w-8"
-                    : "bg-gray-300"
-                }`}
-              />
-            )
-          )}
+        {/* --- The Clean Slider --- */}
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="flex gap-8 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4"
+        >
+          {testimonials.map((item) => (
+            <div
+              key={item.id}
+              className="min-w-[85vw] md:min-w-[400px] snap-start flex flex-col"
+            >
+              {/* Card Container */}
+              <div className="bg-gray-50 p-8 md:p-10 h-full flex flex-col justify-between transition-colors duration-500 hover:bg-gray-100">
+                {/* Top: Stars & Quote Icon */}
+                <div className="flex justify-between items-start mb-8">
+                  <div className="flex gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        size={14}
+                        fill={i < item.rating ? "#1f2937" : "transparent"}
+                        className={
+                          i < item.rating ? "text-gray-900" : "text-gray-300"
+                        }
+                      />
+                    ))}
+                  </div>
+                  <Quote size={32} className="text-gray-300 opacity-50" />
+                </div>
+
+                {/* Middle: Text */}
+                <div className="mb-8">
+                  <p className="font-display text-xl md:text-2xl text-gray-800 leading-relaxed italic">
+                    "{item.text}"
+                  </p>
+                </div>
+
+                {/* Bottom: User & Product */}
+                <div className="flex items-center gap-4 pt-8 border-t border-gray-200">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-12 h-12 rounded-full object-cover grayscale opacity-80"
+                  />
+                  <div>
+                    <h4 className="font-body font-bold text-gray-900 text-sm uppercase tracking-wider">
+                      {item.name}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1 font-light">
+                      <span>{item.role}</span>
+                      <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                      <span className="text-gray-700">{item.product}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Spacer for right padding */}
+          <div className="min-w-[1px] h-1" />
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -257,10 +309,10 @@ const InstagramSection = () => {
   return (
     <div className="py-8 md:py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-[#115e59] mb-2 md:mb-3 font-serif">
+        <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-center text-[#115e59] mb-2 md:mb-3">
           Follow Us on Instagram
         </h2>
-        <p className="text-center text-gray-600 text-sm md:text-base mb-6 md:mb-8">
+        <p className="font-body text-center text-gray-600 text-sm md:text-base mb-6 md:mb-8">
           @krambica_fashion - Shop our Instagram feed
         </p>
 
@@ -293,133 +345,215 @@ const InstagramSection = () => {
   );
 };
 // Download App Section
-const DownloadAppSection = () => {
-  return (
-    <div className="py-8  bg-gradient-to-br from-[#115e59] via-[#0f766e] to-[#134e4a] relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 md:w-48 md:h-48 bg-white rounded-full blur-3xl"></div>
-        <div className="absolute bottom-10 right-10 w-40 h-40 md:w-56 md:h-56 bg-white rounded-full blur-3xl"></div>
-      </div>
+// Download App Section with PWA Install
 
-      <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
-          {/* Left Content */}
-          <div className="text-center lg:text-left text-white order-2 lg:order-1">
-            <div className="inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-xs md:text-sm font-semibold mb-4 md:mb-6">
-              ✨ Coming Soon
+const DownloadAppSection = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    // PWA Logic (kept streamlined)
+    const isStandalone =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true);
+
+    if (isStandalone) setIsInstalled(true);
+
+    const handlePrompt = (e) => {
+      e.preventDefault();
+      if (!isStandalone) {
+        setDeferredPrompt(e);
+        setIsInstallable(true);
+      }
+    };
+
+    window.addEventListener("beforeinstallprompt", handlePrompt);
+    return () =>
+      window.removeEventListener("beforeinstallprompt", handlePrompt);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setDeferredPrompt(null);
+      setIsInstallable(false);
+    }
+  };
+
+  if (!isClient) return null;
+
+  return (
+    <section className="py-24 bg-white border-t border-gray-100 overflow-hidden">
+      <style jsx global>{`
+        @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap");
+        .font-serif {
+          font-family: "Playfair Display", serif;
+        }
+        .font-sans {
+          font-family: "Inter", sans-serif;
+        }
+      `}</style>
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          {/* --- LEFT COLUMN: Editorial Pitch --- */}
+          <div className="space-y-8 text-center lg:text-left order-2 lg:order-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full">
+              <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse"></span>
+              <span className="font-body text-xs font-bold tracking-widest uppercase text-gray-600">
+                Native App
+              </span>
             </div>
 
-            <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 leading-tight">
-              Shop Anytime, <br className="hidden md:block" />
-              <span className="text-teal-200">Anywhere</span>
+            <h2 className="font-display text-4xl lg:text-6xl text-gray-900 leading-tight">
+              The Red Carpet, <br />
+              <span className="italic text-gray-400">in your pocket.</span>
             </h2>
 
-            <p className="text-base md:text-lg lg:text-xl text-teal-100 mb-6 md:mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-              Get exclusive app-only deals, early access to new collections, and
-              seamless shopping experience right at your fingertips.
+            <p className="font-body text-lg text-gray-500 leading-relaxed max-w-lg mx-auto lg:mx-0">
+              Unlock the complete Krambica experience. Get early access to new
+              saree drops, seamless checkout, and exclusive app-only discounts.
             </p>
 
-            {/* Features List */}
-            <div className="grid sm:grid-cols-2 gap-3 md:gap-4 mb-8 md:mb-10 max-w-xl mx-auto lg:mx-0">
+            <ul className="space-y-4 pt-2 inline-block text-left font-body">
               {[
-                { icon: "🎁", text: "Exclusive App Deals" },
-                { icon: "⚡", text: "Lightning Fast Checkout" },
-                { icon: "🔔", text: "Real-time Notifications" },
-                { icon: "📦", text: "Track Orders Live" },
-              ].map((feature, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4"
+                "Instant One-Tap Checkout",
+                "Exclusive Runway Previews",
+                "Personalized Styling Feed",
+              ].map((item, i) => (
+                <li
+                  key={i}
+                  className="flex items-center gap-3 text-gray-800 font-medium"
                 >
-                  <span className="text-2xl md:text-3xl">{feature.icon}</span>
-                  <span className="text-sm md:text-base font-medium">
-                    {feature.text}
-                  </span>
-                </div>
+                  <div className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center shrink-0">
+                    <Check size={12} strokeWidth={4} />
+                  </div>
+                  {item}
+                </li>
               ))}
-            </div>
+            </ul>
 
-            {/* Download Buttons */}
-
-            {/* Notification Signup */}
-          </div>
-
-          {/* Right Content - Phone Mockup */}
-          <div className="relative order-1 lg:order-2">
-            <div className="relative mx-auto w-64 sm:w-72 md:w-80 lg:w-96">
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -left-4 md:-top-6 md:-left-6 w-16 h-16 md:w-20 md:h-20 bg-amber-400 rounded-2xl flex items-center justify-center shadow-2xl animate-bounce">
-                <span className="text-2xl md:text-3xl">🛍️</span>
-              </div>
-              <div className="absolute -bottom-4 -right-4 md:-bottom-6 md:-right-6 w-16 h-16 md:w-20 md:h-20 bg-pink-400 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse">
-                <span className="text-2xl md:text-3xl">💝</span>
-              </div>
-              <div className="absolute top-1/4 -right-8 md:-right-12 w-14 h-14 md:w-16 md:h-16 bg-purple-400 rounded-full flex items-center justify-center shadow-2xl animate-pulse delay-100">
-                <span className="text-xl md:text-2xl">⚡</span>
-              </div>
-
-              {/* Phone Frame */}
-              <div className="relative bg-gray-900 rounded-[2.5rem] md:rounded-[3rem] p-2 md:p-3 shadow-2xl">
-                <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden">
-                  {/* Phone Notch */}
-                  <div className="bg-gray-900 h-6 md:h-7 rounded-b-3xl mx-auto w-32 md:w-40"></div>
-
-                  {/* App Screenshot */}
-                  <div className="bg-gradient-to-br from-teal-50 to-white p-4 md:p-6 h-[500px] sm:h-[550px] md:h-[600px] lg:h-[650px] overflow-hidden">
-                    <div className="text-center mb-4 md:mb-6">
-                      <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-[#115e59] to-[#0f766e] rounded-2xl md:rounded-3xl mx-auto mb-3 md:mb-4 flex items-center justify-center shadow-lg">
-                        <span className="text-2xl md:text-3xl">👗</span>
-                      </div>
-                      <h3 className="text-lg md:text-xl font-bold text-gray-900">
-                        Krambica
-                      </h3>
-                      <p className="text-xs md:text-sm text-gray-500">
-                        Fashion & Lifestyle
-                      </p>
-                    </div>
-
-                    {/* Sample App Interface */}
-                    <div className="space-y-3 md:space-y-4">
-                      <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 shadow-md">
-                        <div className="flex gap-3 md:gap-4">
-                          <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-200 rounded-lg md:rounded-xl animate-pulse"></div>
-                          <div className="flex-1 space-y-2">
-                            <div className="h-3 md:h-4 bg-gray-200 rounded animate-pulse"></div>
-                            <div className="h-3 md:h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 shadow-md">
-                        <div className="flex gap-3 md:gap-4">
-                          <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-200 rounded-lg md:rounded-xl animate-pulse delay-75"></div>
-                          <div className="flex-1 space-y-2">
-                            <div className="h-3 md:h-4 bg-gray-200 rounded animate-pulse delay-75"></div>
-                            <div className="h-3 md:h-4 bg-gray-200 rounded w-3/4 animate-pulse delay-75"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 shadow-md">
-                        <div className="flex gap-3 md:gap-4">
-                          <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-200 rounded-lg md:rounded-xl animate-pulse delay-100"></div>
-                          <div className="flex-1 space-y-2">
-                            <div className="h-3 md:h-4 bg-gray-200 rounded animate-pulse delay-100"></div>
-                            <div className="h-3 md:h-4 bg-gray-200 rounded w-3/4 animate-pulse delay-100"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+            {/* CTA Buttons */}
+            <div className="pt-6 flex flex-col sm:flex-row items-center gap-5 justify-center lg:justify-start">
+              {isInstallable ? (
+                <button
+                  onClick={handleInstallClick}
+                  className="bg-gray-900 text-white px-8 py-4 rounded-full font-semibold flex items-center gap-3 hover:bg-black transition-all shadow-xl hover:shadow-2xl active:scale-95"
+                >
+                  <Download size={20} />
+                  <span>Install App</span>
+                </button>
+              ) : isInstalled ? (
+                <div className="bg-green-50 text-green-700 px-8 py-4 rounded-full font-semibold flex items-center gap-3 cursor-default border border-green-100">
+                  <Check size={20} /> App Installed
+                </div>
+              ) : (
+                <div className="hidden lg:flex items-center gap-4 bg-white p-2 pr-6 rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="bg-gray-900 p-2 rounded-xl">
+                    <QrCode size={28} className="text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-body text-xs font-bold text-gray-900 uppercase">
+                      Scan to Download
+                    </p>
+                    <p className="font-body text-[10px] text-gray-400">
+                      iOS & Android
+                    </p>
                   </div>
                 </div>
+              )}
+              <div className="lg:hidden font-body text-xs text-gray-400">
+                {!isInstallable && !isInstalled && "Open in browser to install"}
+              </div>
+            </div>
+          </div>
+
+          {/* --- RIGHT COLUMN: The Replica Phone UI --- */}
+          <div className="order-1 lg:order-2 flex justify-center lg:justify-end relative">
+            {/* Decorative Elements */}
+            <div className="absolute top-20 -left-12 w-24 h-24 bg-gradient-to-tr from-rose-100 to-transparent rounded-full blur-xl opacity-60"></div>
+            <div className="absolute bottom-20 -right-4 w-32 h-32 bg-gradient-to-tr from-emerald-100 to-transparent rounded-full blur-xl opacity-60"></div>
+
+            {/* Phone Frame */}
+            <div className="relative w-[320px] h-[640px] bg-gray-900 rounded-[3.5rem] p-3 shadow-2xl border-[6px] border-gray-900 ring-1 ring-gray-800 z-10">
+              {/* Hardware Buttons */}
+              <div className="absolute top-28 -left-[8px] w-[2px] h-8 bg-gray-700 rounded-l-md" />
+              <div className="absolute top-36 -left-[8px] w-[2px] h-14 bg-gray-700 rounded-l-md" />
+
+              {/* Screen Content - Pure White Background as per image */}
+              <div className="h-full w-full bg-white rounded-[2.8rem] overflow-hidden flex flex-col relative">
+                {/* Status Bar / Notch */}
+                <div className="absolute top-0 w-full h-8 z-30 flex justify-center items-end">
+                  <div className="w-24 h-6 bg-black rounded-b-xl"></div>
+                </div>
+
+                {/* App Header */}
+                <div className="mt-8 px-6 pb-2 flex justify-between items-center bg-white z-20">
+                  <Menu size={24} className="text-gray-800" />
+                  <span className="font-display font-bold text-xl text-emerald-950 tracking-wide">
+                    Krambica
+                  </span>
+                  <ShoppingBag size={22} className="text-gray-800" />
+                </div>
+
+                {/* SCROLLABLE AREA */}
+                <div className="flex-1 overflow-hidden px-5 pt-2 pb-4 space-y-6 bg-white">
+                  {/* HERO CARD - Exact Replica of Image */}
+                  <div className="relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden shadow-sm">
+                    <img
+                      src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&h=800&fit=crop&q=85"
+                      className="w-full h-full object-cover"
+                      alt="Saree Model"
+                    />
+
+                    {/* The specific 'NEW ARRIVAL' badge from image */}
+                    <div className="absolute bottom-6 left-6 bg-white px-4 py-1.5 shadow-sm">
+                      <span className="font-body text-[10px] font-extrabold tracking-[0.2em] text-black uppercase">
+                        New Arrival
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Secondary Row (The two grey boxes from image) */}
+                  <div className="flex gap-4">
+                    <div className="flex-1 aspect-square bg-gray-100 rounded-2xl animate-pulse"></div>
+                    <div className="flex-1 aspect-square bg-gray-100 rounded-2xl animate-pulse"></div>
+                  </div>
+                </div>
+
+                {/* BOTTOM NAVIGATION - Exact Replica */}
+                <div className="h-16 bg-white border-t border-gray-50 flex justify-between items-center px-8 pb-2">
+                  {/* Home (Active) */}
+                  <div className="relative">
+                    <Home size={24} className="text-black stroke-[2.5]" />
+                  </div>
+
+                  {/* Search */}
+                  <Search size={24} className="text-gray-300 stroke-[2.5]" />
+
+                  {/* Favorites */}
+                  <Star size={24} className="text-gray-300 stroke-[2.5]" />
+
+                  {/* Profile */}
+                  <User size={24} className="text-gray-300 stroke-[2.5]" />
+                </div>
+
+                {/* Home Indicator */}
+                <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full opacity-20"></div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
-
 // Floating Action Buttons
 const FloatingButtons = () => {
   const [showChat, setShowChat] = useState(false);
@@ -465,8 +599,12 @@ const FloatingButtons = () => {
                   <MessageCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base md:text-lg">Live Chat</h3>
-                  <p className="text-xs text-white/80">We're here to help!</p>
+                  <h3 className="font-display font-bold text-base md:text-lg">
+                    Live Chat
+                  </h3>
+                  <p className="font-body text-xs text-white/80">
+                    We're here to help!
+                  </p>
                 </div>
               </div>
               <button
@@ -480,27 +618,27 @@ const FloatingButtons = () => {
               <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-teal-100 to-teal-200 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Clock className="w-8 h-8 md:w-10 md:h-10 text-[#115e59]" />
               </div>
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">
+              <h3 className="font-display text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">
                 Coming Soon!
               </h3>
-              <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6 leading-relaxed">
+              <p className="font-body text-gray-600 text-sm md:text-base mb-4 md:mb-6 leading-relaxed">
                 Our live chat feature is currently under development. We'll be
                 available to assist you soon!
               </p>
-              <p className="text-xs md:text-sm text-gray-500 mb-4 md:mb-6">
+              <p className="font-body text-xs md:text-sm text-gray-500 mb-4 md:mb-6">
                 In the meantime, feel free to reach out via:
               </p>
               <div className="flex flex-col gap-2 md:gap-3">
                 <a
                   href="mailto:support@krambica.com"
-                  className="flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 px-4 md:px-6 py-2.5 md:py-3 rounded-lg transition font-medium text-gray-700 text-sm md:text-base"
+                  className="font-body flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 px-4 md:px-6 py-2.5 md:py-3 rounded-lg transition font-medium text-gray-700 text-sm md:text-base"
                 >
                   <Mail className="w-4 h-4 md:w-5 md:h-5" />
                   support@krambica.com
                 </a>
                 <a
                   href="tel:+919876543210"
-                  className="flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 px-4 md:px-6 py-2.5 md:py-3 rounded-lg transition font-medium text-gray-700 text-sm md:text-base"
+                  className="font-body flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 px-4 md:px-6 py-2.5 md:py-3 rounded-lg transition font-medium text-gray-700 text-sm md:text-base"
                 >
                   <Phone className="w-4 h-4 md:w-5 md:h-5" />
                   +91 98765 43210
@@ -508,7 +646,7 @@ const FloatingButtons = () => {
               </div>
               <button
                 onClick={() => setShowChat(false)}
-                className="mt-4 md:mt-6 bg-gradient-to-r from-[#115e59] to-[#134e4a] text-white px-6 md:px-8 py-2.5 md:py-3 rounded-full font-semibold transition w-full text-sm md:text-base"
+                className="font-body mt-4 md:mt-6 bg-gradient-to-r from-[#115e59] to-[#134e4a] text-white px-6 md:px-8 py-2.5 md:py-3 rounded-full font-semibold transition w-full text-sm md:text-base"
               >
                 Close
               </button>
@@ -538,8 +676,12 @@ const FloatingButtons = () => {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-base md:text-lg">WhatsApp</h3>
-                  <p className="text-xs text-white/80">Chat with us</p>
+                  <h3 className="font-display font-bold text-base md:text-lg">
+                    WhatsApp
+                  </h3>
+                  <p className="font-body text-xs text-white/80">
+                    Chat with us
+                  </p>
                 </div>
               </div>
               <button
@@ -553,27 +695,27 @@ const FloatingButtons = () => {
               <div className="w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Clock className="w-8 h-8 md:w-10 md:h-10 text-green-600" />
               </div>
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">
+              <h3 className="font-display text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">
                 Coming Soon!
               </h3>
-              <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6 leading-relaxed">
+              <p className="font-body text-gray-600 text-sm md:text-base mb-4 md:mb-6 leading-relaxed">
                 WhatsApp support is launching soon! We're setting up to provide
                 you with instant assistance.
               </p>
-              <p className="text-xs md:text-sm text-gray-500 mb-4 md:mb-6">
+              <p className="font-body text-xs md:text-sm text-gray-500 mb-4 md:mb-6">
                 For immediate help, please contact:
               </p>
               <div className="flex flex-col gap-2 md:gap-3">
                 <a
                   href="mailto:support@krambica.com"
-                  className="flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 px-4 md:px-6 py-2.5 md:py-3 rounded-lg transition font-medium text-gray-700 text-sm md:text-base"
+                  className="font-body flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 px-4 md:px-6 py-2.5 md:py-3 rounded-lg transition font-medium text-gray-700 text-sm md:text-base"
                 >
                   <Mail className="w-4 h-4 md:w-5 md:h-5" />
                   support@krambica.com
                 </a>
                 <a
                   href="tel:+919876543210"
-                  className="flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 px-4 md:px-6 py-2.5 md:py-3 rounded-lg transition font-medium text-gray-700 text-sm md:text-base"
+                  className="font-body flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 px-4 md:px-6 py-2.5 md:py-3 rounded-lg transition font-medium text-gray-700 text-sm md:text-base"
                 >
                   <Phone className="w-4 h-4 md:w-5 md:h-5" />
                   +91 98765 43210
@@ -581,7 +723,7 @@ const FloatingButtons = () => {
               </div>
               <button
                 onClick={() => setShowWhatsApp(false)}
-                className="mt-4 md:mt-6 bg-green-500 hover:bg-green-600 text-white px-6 md:px-8 py-2.5 md:py-3 rounded-full font-semibold transition w-full text-sm md:text-base"
+                className="font-body mt-4 md:mt-6 bg-green-500 hover:bg-green-600 text-white px-6 md:px-8 py-2.5 md:py-3 rounded-full font-semibold transition w-full text-sm md:text-base"
               >
                 Close
               </button>
@@ -647,18 +789,23 @@ const ScrollToTop = () => {
 // Main App Component
 const HomeComponent = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50">
-      <HeroCarousel />
-      <IntroSection />
-      <TrendingSection />
-      <BestsellerSection />
-      <CollectionsSlider />
-      <TestimonialsSection />
-      <VideoCarousel />
-      <DownloadAppSection />
-      <FloatingButtons />
-      <ScrollToTop />
-    </div>
+    <>
+      <style jsx global>
+        {globalStyles}
+      </style>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50">
+        <HeroCarousel />
+        <IntroSection />
+        <TrendingSection />
+        <BestsellerSection />
+        <CollectionsSlider />
+        <TestimonialsSection />
+        <VideoCarousel />
+        <DownloadAppSection />
+        <FloatingButtons />
+        <ScrollToTop />
+      </div>
+    </>
   );
 };
 

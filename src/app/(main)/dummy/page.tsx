@@ -1,1132 +1,925 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import React, { useState } from "react";
 import {
-  FaEdit,
+  FaPhoneAlt,
   FaMapMarkerAlt,
-  FaCheckCircle,
-  FaShippingFast,
-  FaUser,
   FaEnvelope,
-  FaShoppingBag,
-  FaBox,
-  FaRupeeSign,
   FaClock,
-  FaExclamationTriangle,
-  FaTruck,
-  FaCreditCard,
-  FaCalendarAlt,
-  FaTimes,
-  FaHome,
-  FaPhone,
-  FaLocationArrow,
-  FaReceipt,
-  FaTag,
-  FaInfoCircle,
-  FaSave,
-  FaSpinner,
 } from "react-icons/fa";
-import { useAppSelector } from "@src/redux/store"; // Adjust import based on your structure
-import { selectUser } from "@src/redux/reducers/authSlice"; // Adjust import based on your structure
+import { FiInstagram, FiFacebook } from "react-icons/fi";
+import { FaTiktok, FaWhatsapp } from "react-icons/fa";
+import { MdMessage, MdLocationOn, MdEmail } from "react-icons/md";
 
-// Order Detail Modal Component
-const OrderDetailModal = ({ order, isOpen, onClose }) => {
-  if (!isOpen || !order) return null;
+// Color Constants
+const COLORS = {
+  primary: {
+    teal: "#0d9488",
+    tealDark: "#0f766e",
+    tealLight: "#5eead4",
+    tealLighter: "#ccfbf1",
+  },
+  gradients: {
+    primary: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)",
+    primaryHover: "linear-gradient(135deg, #0f766e 0%, #115e59 100%)",
+    light: "linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%)",
+    dark: "linear-gradient(135deg, #115e59 0%, #134e4a 100%)",
+  },
+};
 
-  // Status configuration
-  const getStatusConfig = (status) => {
-    const configs = {
-      PENDING: {
-        color: "bg-yellow-100 text-yellow-800",
-        borderColor: "border-yellow-500",
-        icon: <FaClock />,
-        label: "Pending",
-      },
-      PROCESSING: {
-        color: "bg-blue-100 text-blue-800",
-        borderColor: "border-blue-500",
-        icon: <FaTruck />,
-        label: "Processing",
-      },
-      SHIPPED: {
-        color: "bg-purple-100 text-purple-800",
-        borderColor: "border-purple-500",
-        icon: <FaShippingFast />,
-        label: "Shipped",
-      },
-      DELIVERED: {
-        color: "bg-green-100 text-green-800",
-        borderColor: "border-green-500",
-        icon: <FaCheckCircle />,
-        label: "Delivered",
-      },
-      CANCELLED: {
-        color: "bg-red-100 text-red-800",
-        borderColor: "border-red-500",
-        icon: <FaExclamationTriangle />,
-        label: "Cancelled",
-      },
-    };
-
-    return (
-      configs[status] || {
-        color: "bg-gray-100 text-gray-800",
-        borderColor: "border-gray-500",
-        icon: <FaInfoCircle />,
-        label: status,
-      }
-    );
+// Reusable Button Component
+const PrimaryButton = ({
+  children,
+  onClick,
+  className = "",
+  size = "md",
+  ...props
+}) => {
+  const baseStyles =
+    "text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5";
+  const sizeStyles = {
+    sm: "py-2 px-4 text-xs",
+    md: "py-2.5 px-6 text-sm",
+    lg: "py-3 px-8 text-base",
   };
-
-  // Payment status configuration
-  const getPaymentStatusConfig = (status) => {
-    const configs = {
-      PAID: {
-        color: "bg-green-100 text-green-800",
-        label: "Paid",
-      },
-      UNPAID: {
-        color: "bg-red-100 text-red-800",
-        label: "Unpaid",
-      },
-      PENDING: {
-        color: "bg-yellow-100 text-yellow-800",
-        label: "Pending",
-      },
-    };
-
-    return (
-      configs[status] || {
-        color: "bg-gray-100 text-gray-800",
-        label: status,
-      }
-    );
-  };
-
-  // Format date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  const statusConfig = getStatusConfig(order.status);
-  const paymentConfig = getPaymentStatusConfig(order.paymentStatus);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Modal Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between rounded-t-2xl">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
-            <p className="text-gray-600">Order #{order.order_id}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <FaTimes className="text-gray-500 text-xl" />
-          </button>
-        </div>
-
-        {/* Modal Content */}
-        <div className="p-6 space-y-6">
-          {/* Order Status Badges */}
-          <div className="flex flex-wrap gap-4">
-            <div
-              className={`px-4 py-2 ${statusConfig.color} rounded-full font-semibold flex items-center gap-2`}
-            >
-              {statusConfig.icon}
-              {statusConfig.label}
-            </div>
-            <div
-              className={`px-4 py-2 ${paymentConfig.color} rounded-full font-semibold flex items-center gap-2`}
-            >
-              <FaCreditCard />
-              {paymentConfig.label}
-            </div>
-          </div>
-
-          {/* Order Timeline */}
-          <div className="bg-gray-50 rounded-xl p-6">
-            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <FaCalendarAlt className="text-teal-600" />
-              Order Timeline
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-                    <FaClock className="text-teal-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Order Placed</p>
-                    <p className="text-sm text-gray-500">
-                      {formatDate(order.placedAt)}
-                    </p>
-                  </div>
-                </div>
-                <div className="w-2 h-2 rounded-full bg-teal-500"></div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                    <FaTruck className="text-gray-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Processing</p>
-                    <p className="text-sm text-gray-500">In progress</p>
-                  </div>
-                </div>
-                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-              </div>
-
-              {order.deliveredAt && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                      <FaCheckCircle className="text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Delivered</p>
-                      <p className="text-sm text-gray-500">
-                        {formatDate(order.deliveredAt)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Shipping Address */}
-          {order.shippingAddress && (
-            <div className="bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl p-6 border border-teal-200">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FaHome className="text-teal-600" />
-                Shipping Address
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <FaUser className="text-teal-600 mt-1" />
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {order.shippingAddress.fullName}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <FaPhone className="text-teal-600" />
-                  <p className="text-gray-700">{order.shippingAddress.phone}</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <FaLocationArrow className="text-teal-600 mt-1" />
-                  <div>
-                    <p className="text-gray-700">
-                      {order.shippingAddress.addressLine1}
-                    </p>
-                    {order.shippingAddress.addressLine2 && (
-                      <p className="text-gray-700">
-                        {order.shippingAddress.addressLine2}
-                      </p>
-                    )}
-                    <p className="text-gray-700">
-                      {order.shippingAddress.city},{" "}
-                      {order.shippingAddress.state}{" "}
-                      {order.shippingAddress.zipCode}
-                    </p>
-                    <p className="text-gray-700">
-                      {order.shippingAddress.country}
-                    </p>
-                    {order.shippingAddress.isDefault && (
-                      <span className="inline-block mt-2 px-2 py-1 bg-teal-100 text-teal-800 text-xs rounded">
-                        Default Address
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Order Summary */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <FaReceipt className="text-teal-600" />
-              Order Summary
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="font-medium">
-                  {formatCurrency(order.totalAmount)}
-                </span>
-              </div>
-              {order.discount > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 flex items-center gap-2">
-                    <FaTag className="text-green-600" />
-                    Discount
-                  </span>
-                  <span className="font-medium text-green-600">
-                    -{formatCurrency(order.discount)}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tax</span>
-                <span className="font-medium">{formatCurrency(order.tax)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shipping Cost</span>
-                <span className="font-medium">
-                  {formatCurrency(order.shippingCost)}
-                </span>
-              </div>
-              <div className="border-t border-gray-200 pt-3">
-                <div className="flex justify-between">
-                  <span className="text-lg font-bold text-gray-900">
-                    Grand Total
-                  </span>
-                  <span className="text-2xl font-bold text-teal-700">
-                    {formatCurrency(order.grandTotal)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment & Shipping Info */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h4 className="font-semibold text-gray-900 mb-3">
-                Payment Information
-              </h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Method</span>
-                  <span className="font-medium">{order.paymentMethod}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status</span>
-                  <span
-                    className={`px-2 py-1 ${paymentConfig.color} rounded text-xs font-medium`}
-                  >
-                    {paymentConfig.label}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h4 className="font-semibold text-gray-900 mb-3">
-                Shipping Information
-              </h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Method</span>
-                  <span className="font-medium">{order.shippingMethod}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping Cost</span>
-                  <span className="font-medium">
-                    {formatCurrency(order.shippingCost)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Dates */}
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Order Created</p>
-              <p className="font-medium">{formatDate(order.createdAt)}</p>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Last Updated</p>
-              <p className="font-medium">{formatDate(order.updatedAt)}</p>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Order ID</p>
-              <p className="font-medium text-sm break-all">{order.id}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end gap-3 rounded-b-2xl">
-          <button
-            onClick={onClose}
-            className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-300 font-medium"
-          >
-            Close
-          </button>
-          <button
-            onClick={() => {
-              alert("Invoice download functionality would go here");
-            }}
-            className="px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-xl hover:from-teal-700 hover:to-teal-800 transition-all duration-300 font-medium"
-          >
-            Download Invoice
-          </button>
-        </div>
-      </div>
-    </div>
+    <button
+      onClick={onClick}
+      className={`${baseStyles} ${sizeStyles[size]} ${className}`}
+      style={{
+        background: COLORS.gradients.primary,
+        borderRadius: "0.75rem",
+        transition: "all 0.3s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.target.style.background = COLORS.gradients.primaryHover;
+        e.target.style.transform = "translateY(-2px)";
+      }}
+      onMouseLeave={(e) => {
+        e.target.style.background = COLORS.gradients.primary;
+        e.target.style.transform = "translateY(0)";
+      }}
+      {...props}
+    >
+      {children}
+    </button>
   );
 };
 
-// Main User Profile Component
-const UserProfile = () => {
-  const user = useAppSelector(selectUser);
-  const userId = 1;
-  const apiUrl = `http://localhost:8020/api/orders/users/${user?.user_id}/orders`;
-  const updateUrl = `http://localhost:8020/api/auth/${user.id}`;
+// Contact Hero Section
+const ContactHero = () => {
+  return (
+    <section
+      className="pt-8 md:pt-16 px-4 md:px-16 py-8 md:py-16"
+      style={{ background: COLORS.gradients.dark }}
+    >
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center text-white">
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+            style={{
+              background: "rgba(255, 255, 255, 0.1)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+            }}
+          >
+            <MdMessage className="w-4 h-4" />
+            <span className="text-sm font-semibold">GET IN TOUCH</span>
+          </div>
 
-  // Get user from Redux store
-  console.log("User from Redux:", user);
+          <h1 className="text-3xl md:text-5xl font-serif leading-tight mb-4 md:mb-6">
+            Contact Us
+          </h1>
+          <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+            We're here to help with any questions about our pure cotton clothing
+            collections. Reach out and let's start a conversation about comfort.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+};
 
-  // Profile state
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [updateSuccess, setUpdateSuccess] = useState(false);
-  const [updateError, setUpdateError] = useState(null);
+// Contact Information Cards
+const ContactInfo = () => {
+  const contactMethods = [
+    {
+      icon: <FaPhoneAlt className="w-6 h-6" />,
+      title: "Phone & WhatsApp",
+      details: ["+91 98765 43210", "+91 98765 43211"],
+      description: "Available 9 AM - 8 PM IST",
+      action: "Call Now",
+      actionLink: "tel:+919876543210",
+      color: "from-blue-500 to-blue-600",
+    },
+    {
+      icon: <MdEmail className="w-6 h-6" />,
+      title: "Email Us",
+      details: ["hello@purecotton.com", "support@purecotton.com"],
+      description: "Response within 24 hours",
+      action: "Send Email",
+      actionLink: "mailto:hello@purecotton.com",
+      color: "from-green-500 to-green-600",
+    },
+    {
+      icon: <MdLocationOn className="w-6 h-6" />,
+      title: "Visit Our Store",
+      details: ["123 Cotton Street", "Mumbai, India 400001"],
+      description: "Open 10 AM - 8 PM, Monday - Saturday",
+      action: "Get Directions",
+      actionLink: "https://maps.google.com",
+      color: "from-orange-500 to-orange-600",
+    },
+    {
+      icon: <FaClock className="w-6 h-6" />,
+      title: "Business Hours",
+      details: [
+        "Monday - Friday: 9 AM - 8 PM",
+        "Saturday: 10 AM - 7 PM",
+        "Sunday: 11 AM - 6 PM",
+      ],
+      description: "Online support available 24/7",
+      action: "View FAQ",
+      actionLink: "#faq",
+      color: "from-purple-500 to-purple-600",
+    },
+  ];
 
-  // React Hook Form
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isDirty, isValid },
-    reset,
-    watch,
-  } = useForm({
-    mode: "onChange",
-    defaultValues: useMemo(
-      () => ({
-        name: user?.name || "",
-        phone: user?.phone || "",
-        location: user?.location || "",
-      }),
-      [user]
-    ),
+  return (
+    <section className="px-4 md:px-16 py-12 md:py-20 bg-white">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-serif text-gray-800 mb-4">
+            Multiple Ways to Connect
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
+            Choose your preferred method to reach our customer support team
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          {contactMethods.map((method, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6 md:p-8 border border-gray-100"
+            >
+              <div
+                className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-6 bg-gradient-to-r ${method.color}`}
+              >
+                {method.icon}
+              </div>
+
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                {method.title}
+              </h3>
+
+              <div className="space-y-2 mb-4">
+                {method.details.map((detail, idx) => (
+                  <p key={idx} className="text-gray-700 text-sm md:text-base">
+                    {detail}
+                  </p>
+                ))}
+              </div>
+
+              <p className="text-sm text-gray-500 mb-6">{method.description}</p>
+
+              <a
+                href={method.actionLink}
+                className="inline-block px-4 py-2 rounded-lg font-medium text-sm hover:scale-105 transition-transform"
+                style={{
+                  background: COLORS.gradients.primary,
+                  color: "white",
+                }}
+              >
+                {method.action}
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Contact Form
+const ContactForm = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
   });
 
-  // Watch form values to detect changes
-  const formValues = watch();
-
-  // Orders state
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    totalPages: 1,
-    hasNextPage: false,
-    hasPrevPage: false,
-    total: 0,
-  });
-
-  // Modal state
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Initialize form with user data
-  useEffect(() => {
-    if (user) {
-      reset({
-        name: user.name || "",
-        phone: user.phone || "",
-        location: user.location || "",
-      });
-    }
-  }, [user, reset]);
-
-  // Fetch orders from API
-  const fetchOrders = async (page = 1) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${apiUrl}?page=${page}&limit=10`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch orders");
-      }
-
-      const data = await response.json();
-
-      if (data.status === "success") {
-        setOrders(data.data.data);
-        setPagination({
-          page: data.data.meta.page,
-          totalPages: data.data.meta.totalPages,
-          hasNextPage: data.data.meta.hasNextPage,
-          hasPrevPage: data.data.meta.hasPrevPage,
-          total: data.data.meta.total,
-        });
-      } else {
-        throw new Error(data.message || "Failed to fetch orders");
-      }
-    } catch (err) {
-      setError(err.message);
-      console.error("Error fetching orders:", err);
-    } finally {
-      setLoading(false);
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission
+    console.log("Form submitted:", formData);
   };
 
-  useEffect(() => {
-    fetchOrders(1);
-  }, []);
-
-  // Update profile API call
-  const updateProfile = async (data) => {
-    setIsSubmitting(true);
-    setUpdateSuccess(false);
-    setUpdateError(null);
-
-    try {
-      const response = await fetch(updateUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: data.name,
-          phone: data.phone,
-          location: data.location,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update profile");
-      }
-
-      const result = await response.json();
-
-      if (result.status === "success") {
-        setUpdateSuccess(true);
-        setIsEditing(false);
-        // Here you might want to update the Redux store with new user data
-        // dispatch(updateUserProfile(result.data));
-
-        // Hide success message after 3 seconds
-        setTimeout(() => {
-          setUpdateSuccess(false);
-        }, 3000);
-      } else {
-        throw new Error(result.message || "Failed to update profile");
-      }
-    } catch (err) {
-      setUpdateError(err.message);
-      console.error("Error updating profile:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Status configuration
-  const getStatusConfig = (status) => {
-    const configs = {
-      PENDING: {
-        color: "bg-yellow-100 text-yellow-800",
-        borderColor: "border-yellow-500",
-        icon: <FaClock className="text-sm" />,
-        label: "Pending",
-      },
-      PROCESSING: {
-        color: "bg-blue-100 text-blue-800",
-        borderColor: "border-blue-500",
-        icon: <FaTruck className="text-sm" />,
-        label: "Processing",
-      },
-      SHIPPED: {
-        color: "bg-purple-100 text-purple-800",
-        borderColor: "border-purple-500",
-        icon: <FaShippingFast className="text-sm" />,
-        label: "Shipped",
-      },
-      DELIVERED: {
-        color: "bg-green-100 text-green-800",
-        borderColor: "border-green-500",
-        icon: <FaCheckCircle className="text-sm" />,
-        label: "Delivered",
-      },
-      CANCELLED: {
-        color: "bg-red-100 text-red-800",
-        borderColor: "border-red-500",
-        icon: <FaExclamationTriangle className="text-sm" />,
-        label: "Cancelled",
-      },
-    };
-
-    return (
-      configs[status] || {
-        color: "bg-gray-100 text-gray-800",
-        borderColor: "border-gray-500",
-        icon: <FaInfoCircle className="text-sm" />,
-        label: status,
-      }
-    );
-  };
-
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  // Format date to readable format
-  const formatShortDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
     });
   };
 
-  // Calculate stats from orders
-  const calculateStats = () => {
-    const deliveredCount = orders.filter(
-      (order) => order.status === "DELIVERED"
-    ).length;
-    const pendingCount = orders.filter(
-      (order) => order.status === "PENDING"
-    ).length;
-    const totalSpent = orders
-      .filter((order) => order.status === "DELIVERED")
-      .reduce((sum, order) => sum + order.grandTotal, 0);
-
-    return [
-      {
-        label: "Total Orders",
-        value: pagination.total.toString(),
-        icon: <FaShoppingBag className="text-teal-600" />,
-        color: "from-teal-50 to-teal-100",
-      },
-      {
-        label: "Pending",
-        value: pendingCount.toString(),
-        icon: <FaClock className="text-yellow-600" />,
-        color: "from-yellow-50 to-yellow-100",
-      },
-      {
-        label: "Delivered",
-        value: deliveredCount.toString(),
-        icon: <FaBox className="text-green-600" />,
-        color: "from-green-50 to-green-100",
-      },
-      {
-        label: "Total Spent",
-        value: formatCurrency(totalSpent),
-        icon: <FaRupeeSign className="text-teal-600" />,
-        color: "from-blue-50 to-blue-100",
-      },
-    ];
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    reset();
-    setIsEditing(false);
-    setUpdateError(null);
-  };
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
-      fetchOrders(newPage);
-    }
-  };
-
-  const handleViewOrderDetails = (order) => {
-    setSelectedOrder(order);
-    setIsModalOpen(true);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-3 sm:p-4 md:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Success Message */}
-        {updateSuccess && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg sm:rounded-xl">
-            <div className="flex items-start sm:items-center gap-2 sm:gap-3">
-              <FaCheckCircle className="text-green-600 text-lg sm:text-xl flex-shrink-0 mt-0.5 sm:mt-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-green-800 text-sm sm:text-base">
-                  Profile updated successfully!
-                </p>
-                <p className="text-xs sm:text-sm text-green-600 mt-0.5">
-                  Your changes have been saved.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+    <section
+      className="px-4 md:px-16 py-12 md:py-20"
+      style={{ background: COLORS.gradients.light }}
+    >
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-serif text-gray-800 mb-4">
+            Send Us a Message
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
+            Fill out the form below and we'll get back to you as soon as
+            possible
+          </p>
+        </div>
 
-        {/* Error Message */}
-        {updateError && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg sm:rounded-xl">
-            <div className="flex items-start sm:items-center gap-2 sm:gap-3">
-              <FaExclamationTriangle className="text-red-600 text-lg sm:text-xl flex-shrink-0 mt-0.5 sm:mt-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-red-800 text-sm sm:text-base">
-                  Update failed
-                </p>
-                <p className="text-xs sm:text-sm text-red-600 mt-0.5 break-words">
-                  {updateError}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* PROFILE SECTION - IMPROVED MOBILE RESPONSIVE */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden mb-6 sm:mb-8">
-          {/* Cover with teal gradient - Reduced height on mobile */}
-          <div className="h-20 sm:h-24 md:h-32 bg-gradient-to-r from-teal-600 to-teal-800 relative">
-            <div className="absolute inset-0 bg-black opacity-5"></div>
-          </div>
-
-          {/* Profile Content */}
-          <div className="relative px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6">
-            {/* Avatar and Basic Info Section */}
-            <div className="flex flex-col sm:flex-row sm:items-end -mt-10 sm:-mt-12 gap-3 sm:gap-4">
-              {/* Avatar - Smaller on mobile */}
-              <div className="relative flex-shrink-0 mx-auto sm:mx-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white shadow-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
-                  <span className="text-white text-xl sm:text-2xl font-bold">
-                    {user?.name
-                      ?.split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase() || "JD"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Profile Info and Edit Button */}
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  {/* User Details */}
-                  <div className="flex-1 min-w-0">
-                    {!isEditing ? (
-                      <div className="space-y-2 text-center sm:text-left">
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
-                          {user?.name || "John Doe"}
-                        </h1>
-
-                        {/* Contact Details - Stack on mobile */}
-                        <div className="space-y-1.5 sm:space-y-1">
-                          <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-600">
-                            <FaEnvelope className="text-xs sm:text-sm flex-shrink-0" />
-                            <span className="text-xs sm:text-sm truncate max-w-full">
-                              {user?.email || "john.doe@example.com"}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-500">
-                            <FaPhone className="text-teal-600 text-xs sm:text-sm flex-shrink-0" />
-                            <span className="text-xs sm:text-sm">
-                              {user?.phone || "9876543210"}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-500">
-                            <FaMapMarkerAlt className="text-teal-600 text-xs sm:text-sm flex-shrink-0" />
-                            <span className="text-xs sm:text-sm line-clamp-1">
-                              {user?.location || "Mumbai, Maharashtra, India"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // EDIT MODE - Improved Mobile Form
-                      <form
-                        onSubmit={handleSubmit(updateProfile)}
-                        className="space-y-3 sm:space-y-4 w-full"
-                      >
-                        {/* Form Fields */}
-                        <div className="space-y-3 sm:space-y-4">
-                          {/* Name Field */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                              Name *
-                            </label>
-                            <input
-                              type="text"
-                              {...register("name", {
-                                required: "Name is required",
-                                minLength: {
-                                  value: 2,
-                                  message: "Name must be at least 2 characters",
-                                },
-                              })}
-                              className={`w-full px-3 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
-                                errors.name
-                                  ? "border-red-300"
-                                  : "border-gray-300"
-                              }`}
-                              placeholder="Enter your name"
-                            />
-                            {errors.name && (
-                              <p className="mt-1 text-xs sm:text-sm text-red-600">
-                                {errors.name.message}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Email Field (Read-only) */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                              Email
-                            </label>
-                            <input
-                              type="email"
-                              value={user?.email || "john.doe@example.com"}
-                              readOnly
-                              disabled
-                              className="w-full px-3 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                            />
-                            <p className="mt-1 text-xs text-gray-500">
-                              Email cannot be changed
-                            </p>
-                          </div>
-
-                          {/* Phone Field */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                              Phone Number *
-                            </label>
-                            <input
-                              type="tel"
-                              {...register("phone", {
-                                required: "Phone number is required",
-                                pattern: {
-                                  value: /^[0-9]{10}$/,
-                                  message:
-                                    "Please enter a valid 10-digit phone number",
-                                },
-                              })}
-                              className={`w-full px-3 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
-                                errors.phone
-                                  ? "border-red-300"
-                                  : "border-gray-300"
-                              }`}
-                              placeholder="Enter your phone number"
-                            />
-                            {errors.phone && (
-                              <p className="mt-1 text-xs sm:text-sm text-red-600">
-                                {errors.phone.message}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Location Field */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                              Location *
-                            </label>
-                            <input
-                              type="text"
-                              {...register("location", {
-                                required: "Location is required",
-                              })}
-                              className={`w-full px-3 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
-                                errors.location
-                                  ? "border-red-300"
-                                  : "border-gray-300"
-                              }`}
-                              placeholder="Enter your location"
-                            />
-                            {errors.location && (
-                              <p className="mt-1 text-xs sm:text-sm text-red-600">
-                                {errors.location.message}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Action Buttons - Full width on mobile */}
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
-                          <button
-                            type="button"
-                            onClick={handleCancel}
-                            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={!isDirty || !isValid || isSubmitting}
-                            className={`w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-all text-sm ${
-                              isDirty && isValid && !isSubmitting
-                                ? "bg-gradient-to-r from-teal-600 to-teal-700 text-white hover:from-teal-700 hover:to-teal-800 shadow-md hover:shadow-lg"
-                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                            }`}
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <FaSpinner className="animate-spin" />
-                                <span>Saving...</span>
-                              </>
-                            ) : (
-                              <>
-                                <FaSave />
-                                <span>Save Changes</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </form>
-                    )}
+        <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden">
+          <div className="md:flex">
+            {/* Form Side */}
+            <div className="md:w-2/3 p-6 md:p-10">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-colors"
+                      placeholder="Enter your full name"
+                    />
                   </div>
 
-                  {/* Edit Button - Full width on mobile when not editing */}
-                  {!isEditing && (
-                    <button
-                      onClick={handleEditClick}
-                      className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 transition-all duration-300 shadow-md hover:shadow-lg font-medium flex items-center justify-center gap-2 text-sm flex-shrink-0"
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-colors"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-colors"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Subject *
+                    </label>
+                    <select
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-colors"
                     >
-                      <FaEdit />
-                      <span>Edit Profile</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Stats Section - Optimized for mobile */}
-            <div className="mt-4 sm:mt-5 md:mt-6 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-              {calculateStats().map((stat, index) => (
-                <div
-                  key={index}
-                  className={`bg-gradient-to-br ${stat.color} p-3 sm:p-4 rounded-lg sm:rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">
-                        {stat.value}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 truncate">
-                        {stat.label}
-                      </p>
-                    </div>
-                    <div className="text-lg sm:text-xl flex-shrink-0 self-end sm:self-auto">
-                      {stat.icon}
-                    </div>
+                      <option value="">Select a subject</option>
+                      <option value="order">Order Inquiry</option>
+                      <option value="size">Size & Fit Help</option>
+                      <option value="return">Returns & Exchange</option>
+                      <option value="product">Product Question</option>
+                      <option value="feedback">Feedback</option>
+                      <option value="other">Other</option>
+                    </select>
                   </div>
                 </div>
-              ))}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Message *
+                  </label>
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    rows={6}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-colors resize-none"
+                    placeholder="Tell us how we can help you..."
+                  />
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="checkbox"
+                    id="newsletter"
+                    className="w-4 h-4 text-teal-600 rounded focus:ring-teal-500"
+                  />
+                  <label htmlFor="newsletter" className="text-sm text-gray-600">
+                    Subscribe to our newsletter for updates on new collections
+                    and offers
+                  </label>
+                </div>
+
+                <PrimaryButton
+                  type="submit"
+                  size="lg"
+                  className="w-full md:w-auto"
+                >
+                  Send Message
+                  <span className="ml-2">→</span>
+                </PrimaryButton>
+              </form>
+            </div>
+
+            {/* Info Side */}
+            <div
+              className="md:w-1/3 p-6 md:p-10 text-white"
+              style={{ background: COLORS.gradients.primary }}
+            >
+              <h3 className="text-xl font-semibold mb-6">Why Contact Us?</h3>
+
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white">✓</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">Quick Response</h4>
+                    <p className="text-white/80 text-sm">
+                      Get answers within 24 hours
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white">👗</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">Size Guidance</h4>
+                    <p className="text-white/80 text-sm">
+                      Personalized fitting advice
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white">💫</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">Cotton Expertise</h4>
+                    <p className="text-white/80 text-sm">
+                      Answers about fabric & care
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white">🔄</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">Easy Returns</h4>
+                    <p className="text-white/80 text-sm">
+                      Hassle-free return process
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-white/20">
+                <p className="text-sm mb-4">
+                  Need immediate help? WhatsApp us now:
+                </p>
+                <a
+                  href="https://wa.me/919876543210"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-white text-teal-700 hover:bg-teal-50 transition-colors"
+                >
+                  <FaWhatsapp className="w-5 h-5" />
+                  Chat on WhatsApp
+                </a>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    </section>
+  );
+};
 
-        {/* ORDERS SECTION - Mobile Optimized */}
-        <div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
-              <FaShoppingBag className="text-teal-600 flex-shrink-0" />
-              <span className="truncate">Recent Orders</span>
-              <span className="text-xs sm:text-sm font-normal text-gray-500 whitespace-nowrap">
-                ({pagination.total})
-              </span>
-            </h2>
+// FAQ Section
+const FAQSection = () => {
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-            {/* Pagination - Compact on mobile */}
-            {orders.length > 0 && (
-              <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-                <button
-                  onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={!pagination.hasPrevPage}
-                  className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                    pagination.hasPrevPage
-                      ? "bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  ← Prev
-                </button>
-                <span className="text-xs sm:text-sm text-gray-600 px-2 whitespace-nowrap">
-                  Page {pagination.page} of {pagination.totalPages}
+  const faqs = [
+    {
+      question: "What are your shipping options and delivery times?",
+      answer:
+        "We offer standard (5-7 business days), express (2-3 business days), and same-day delivery in major cities. Shipping charges vary based on location and delivery speed. You'll receive tracking information once your order ships.",
+    },
+    {
+      question: "How do I choose the right size for cotton clothing?",
+      answer:
+        "We provide detailed size charts for each product. For the best fit, measure yourself and compare with our size guide. If you're between sizes, we recommend sizing up for cotton clothing as it provides a more comfortable fit. Our customer service team can also provide personalized size recommendations.",
+    },
+    {
+      question: "What is your return and exchange policy?",
+      answer:
+        "We offer a 30-day return policy for unworn items with original tags attached. Exchanges are free for size-related issues. For returns, we provide a prepaid return label and process refunds within 5-7 business days of receiving the returned item.",
+    },
+    {
+      question: "How should I care for pure cotton clothing?",
+      answer:
+        "Pure cotton should be washed in cold or lukewarm water with mild detergent. Avoid bleach and fabric softeners. Tumble dry on low heat or air dry for best results. Iron on medium heat while the garment is slightly damp for a crisp finish. Follow specific care instructions on each garment's label.",
+    },
+    {
+      question: "Do you offer bulk or wholesale orders?",
+      answer:
+        "Yes, we offer special pricing for bulk orders (10+ pieces) and wholesale partnerships. Contact our business team at wholesale@purecotton.com for custom quotes, minimum order requirements, and partnership opportunities.",
+    },
+  ];
+
+  return (
+    <section className="px-4 md:px-16 py-12 md:py-20 bg-white">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-serif text-gray-800 mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
+            Quick answers to common questions about our cotton clothing
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {faqs.map((faq, index) => (
+            <div
+              key={index}
+              className="border border-gray-200 rounded-2xl overflow-hidden"
+            >
+              <button
+                className="w-full px-6 py-5 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
+                onClick={() => setOpenFaq(openFaq === index ? null : index)}
+              >
+                <span className="text-lg font-medium text-gray-900">
+                  {faq.question}
                 </span>
-                <button
-                  onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={!pagination.hasNextPage}
-                  className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                    pagination.hasNextPage
-                      ? "bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                <span
+                  className={`transform transition-transform ${
+                    openFaq === index ? "rotate-180" : ""
                   }`}
                 >
-                  Next →
-                </button>
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </span>
+              </button>
+
+              {openFaq === index && (
+                <div className="px-6 py-5 bg-gray-50">
+                  <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-12">
+          <p className="text-gray-600 mb-6">
+            Still have questions? We're here to help!
+          </p>
+          <a
+            href="mailto:support@purecotton.com"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition-colors border-2"
+            style={{
+              borderColor: COLORS.primary.teal,
+              color: COLORS.primary.teal,
+            }}
+          >
+            <MdEmail className="w-5 h-5" />
+            Email Your Question
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Social Connect Section
+const SocialConnect = () => {
+  const socialPlatforms = [
+    {
+      icon: <FiInstagram className="w-6 h-6" />,
+      name: "Instagram",
+      handle: "@purecotton",
+      description: "See our latest collections & styling tips",
+      link: "https://instagram.com",
+      color: "from-pink-500 to-purple-600",
+    },
+    {
+      icon: <FiFacebook className="w-6 h-6" />,
+      name: "Facebook",
+      handle: "Pure Cotton Clothing",
+      description: "Join our community & get updates",
+      link: "https://facebook.com",
+      color: "from-blue-600 to-blue-700",
+    },
+    {
+      icon: <FaTiktok className="w-6 h-6" />,
+      name: "TikTok",
+      handle: "@purecottonfashion",
+      description: "Watch styling videos & behind the scenes",
+      link: "https://tiktok.com",
+      color: "from-black to-gray-800",
+    },
+    {
+      icon: <FaWhatsapp className="w-6 h-6" />,
+      name: "WhatsApp",
+      handle: "+91 98765 43210",
+      description: "Quick customer support & orders",
+      link: "https://wa.me/919876543210",
+      color: "from-green-500 to-green-600",
+    },
+  ];
+
+  return (
+    <section
+      className="px-4 md:px-16 py-12 md:py-20"
+      style={{ background: COLORS.gradients.light }}
+    >
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-serif text-gray-800 mb-4">
+            Connect With Us
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
+            Stay updated with our latest collections, offers, and styling tips
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          {socialPlatforms.map((platform, index) => (
+            <a
+              key={index}
+              href={platform.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 p-6 md:p-8 border border-gray-100"
+            >
+              <div
+                className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-6 bg-gradient-to-r ${platform.color}`}
+              >
+                {platform.icon}
               </div>
-            )}
+
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {platform.name}
+              </h3>
+
+              <p className="text-gray-700 mb-2">{platform.handle}</p>
+
+              <p className="text-sm text-gray-500">{platform.description}</p>
+
+              <div
+                className="mt-6 flex items-center text-sm font-medium"
+                style={{ color: COLORS.primary.teal }}
+              >
+                Follow Us
+                <span className="ml-2">→</span>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <div className="text-center mt-12">
+          <p className="text-gray-600 mb-4">
+            Sign up for exclusive updates and offers
+          </p>
+          <div className="max-w-md mx-auto flex gap-3">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            <PrimaryButton>Subscribe</PrimaryButton>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
-          {/* Loading State */}
-          {loading && (
-            <div className="flex justify-center items-center py-8 sm:py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-600"></div>
+// Map Section
+const MapSection = () => {
+  return (
+    <section className="px-4 md:px-16 py-12 md:py-20 bg-white">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-serif text-gray-800 mb-4">
+            Visit Our Store
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
+            Come experience our pure cotton collections in person
+          </p>
+        </div>
+
+        <div className="rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl">
+          {/* Map Placeholder with Image */}
+          <div className="relative h-64 md:h-96 bg-gray-200">
+            <img
+              src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=600&fit=crop"
+              alt="Store Location"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+
+            {/* Location Marker */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center animate-pulse">
+                <MdLocationOn
+                  className="w-6 h-6"
+                  style={{ color: COLORS.primary.teal }}
+                />
+              </div>
             </div>
-          )}
 
-          {/* Error State */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg sm:rounded-xl p-4 text-center">
-              <FaExclamationTriangle className="text-red-500 text-xl sm:text-2xl mx-auto mb-2" />
-              <p className="text-red-700 font-medium text-sm sm:text-base">
-                Error loading orders
-              </p>
-              <p className="text-red-600 text-xs sm:text-sm mt-1 break-words px-2">
-                {error}
-              </p>
-            </div>
-          )}
-
-          {/* Orders List - Mobile Optimized */}
-          {!loading && !error && (
-            <div className="space-y-3 sm:space-y-4">
-              {orders.length === 0 ? (
-                <div className="bg-white rounded-lg sm:rounded-xl shadow p-6 sm:p-8 text-center">
-                  <FaShoppingBag className="text-gray-300 text-2xl sm:text-3xl mx-auto mb-3" />
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
-                    No orders found
+            {/* Location Info Overlay */}
+            <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-sm rounded-2xl p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    Pure Cotton Store
                   </h3>
-                  <p className="text-sm sm:text-base text-gray-500">
-                    You haven't placed any orders yet.
+                  <p className="text-gray-700">
+                    123 Cotton Street, Mumbai, India 400001
+                  </p>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Open 10 AM - 8 PM, Monday - Saturday
                   </p>
                 </div>
-              ) : (
-                orders.map((order) => {
-                  const statusConfig = getStatusConfig(order.status);
-
-                  return (
-                    <div
-                      key={order.id}
-                      className="bg-white rounded-lg sm:rounded-xl shadow hover:shadow-md transition-shadow duration-300 overflow-hidden"
-                    >
-                      <div className="p-3 sm:p-4">
-                        {/* Order Header - Stack on mobile */}
-                        <div className="flex flex-col gap-3">
-                          {/* Order ID and Status */}
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold text-sm sm:text-base text-gray-900 truncate flex-1">
-                              Order #{order.order_id}
-                            </h3>
-                            <span
-                              className={`px-2 sm:px-3 py-1 ${statusConfig.color} rounded-full text-xs font-medium flex items-center gap-1 flex-shrink-0`}
-                            >
-                              {statusConfig.icon}
-                              <span className="hidden xs:inline">
-                                {statusConfig.label}
-                              </span>
-                            </span>
-                          </div>
-
-                          {/* Order Meta Info - Stack on very small screens */}
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-gray-600">
-                            <div className="flex items-center gap-1">
-                              <FaCalendarAlt className="text-gray-400 flex-shrink-0" />
-                              <span>{formatShortDate(order.placedAt)}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <FaCreditCard className="text-gray-400 flex-shrink-0" />
-                              <span className="truncate">
-                                {order.paymentMethod}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1 text-gray-500">
-                              <FaBox className="text-gray-400 flex-shrink-0" />
-                              <span>
-                                {order.items
-                                  ? `${order.items.length} item${
-                                      order.items.length > 1 ? "s" : ""
-                                    }`
-                                  : "1 item"}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Amount and Button */}
-                          <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100">
-                            <div>
-                              <p className="text-base sm:text-lg font-bold text-teal-700">
-                                {formatCurrency(order.grandTotal)}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => handleViewOrderDetails(order)}
-                              className="px-3 sm:px-4 py-2 bg-gradient-to-r from-teal-50 to-teal-100 text-teal-700 rounded-lg hover:from-teal-100 hover:to-teal-200 active:from-teal-200 active:to-teal-300 transition-all duration-300 font-medium border border-teal-200 text-xs sm:text-sm flex-shrink-0"
-                            >
-                              View Details
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Shipping Address Preview - Compact on mobile */}
-                        {order.shippingAddress && (
-                          <div className="mt-3 pt-3 border-t border-gray-100">
-                            <div className="flex items-start gap-2">
-                              <FaMapMarkerAlt className="text-teal-600 mt-1 flex-shrink-0 text-xs sm:text-sm" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs sm:text-sm text-gray-700">
-                                  <span className="font-medium">
-                                    {order.shippingAddress.fullName}
-                                  </span>{" "}
-                                  •{" "}
-                                  <span className="truncate">
-                                    {order.shippingAddress.addressLine1},{" "}
-                                    {order.shippingAddress.city}
-                                  </span>
-                                </p>
-                                <p className="text-xs text-gray-500 mt-0.5">
-                                  {order.shippingAddress.phone}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+                <a
+                  href="https://maps.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium hover:scale-105 transition-transform"
+                  style={{
+                    background: COLORS.gradients.primary,
+                    color: "white",
+                  }}
+                >
+                  <MdLocationOn className="w-5 h-5" />
+                  Get Directions
+                </a>
+              </div>
             </div>
-          )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+          <div className="text-center">
+            <div
+              className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              style={{ background: COLORS.gradients.primary }}
+            >
+              <FaClock className="w-8 h-8 text-white" />
+            </div>
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">
+              Store Hours
+            </h4>
+            <p className="text-gray-600">Mon-Sat: 10 AM - 8 PM</p>
+            <p className="text-gray-600">Sunday: 11 AM - 6 PM</p>
+          </div>
+
+          <div className="text-center">
+            <div
+              className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              style={{ background: COLORS.gradients.primary }}
+            >
+              <FaPhoneAlt className="w-8 h-8 text-white" />
+            </div>
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">
+              Store Contact
+            </h4>
+            <p className="text-gray-600">+91 98765 43210</p>
+            <p className="text-gray-600">store@purecotton.com</p>
+          </div>
+
+          <div className="text-center">
+            <div
+              className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              style={{ background: COLORS.gradients.primary }}
+            >
+              <span className="text-2xl text-white">👗</span>
+            </div>
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">
+              Store Services
+            </h4>
+            <p className="text-gray-600">Personal Styling</p>
+            <p className="text-gray-600">Alterations Available</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Footer Component
+const Footer = () => {
+  return (
+    <footer className="bg-white px-4 md:px-16 py-8 md:py-12 border-t border-gray-200">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 mb-8 md:mb-12">
+        <div>
+          <h3 className="font-semibold mb-3 md:mb-4 text-gray-800 text-xs md:text-sm">
+            Quick Links
+          </h3>
+          <ul className="space-y-2 text-sm text-gray-700">
+            {[
+              "Home",
+              "Collections",
+              "About Us",
+              "Size Guide",
+              "Care Guide",
+              "Contact",
+            ].map((item, index) => (
+              <li key={index}>
+                <a href="#" className="hover:text-gray-900">
+                  {item}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="font-semibold mb-3 md:mb-4 text-gray-800 text-xs md:text-sm">
+            Customer Service
+          </h3>
+          <ul className="space-y-2 text-sm text-gray-700">
+            {[
+              "Shipping Policy",
+              "Return Policy",
+              "Size Exchange",
+              "FAQ",
+              "Track Order",
+              "Privacy Policy",
+            ].map((item, index) => (
+              <li key={index}>
+                <a href="#" className="hover:text-gray-900">
+                  {item}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="font-semibold mb-3 md:mb-4 text-gray-800 text-xs md:text-sm">
+            Contact Info
+          </h3>
+          <div className="space-y-3 text-sm text-gray-700">
+            <p className="flex items-center gap-3">
+              <span
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                style={{ background: COLORS.gradients.primary }}
+              >
+                <FaPhoneAlt className="w-4 h-4" />
+              </span>
+              +91 98765 43210
+            </p>
+            <p className="flex items-start gap-3">
+              <span
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                style={{ background: COLORS.gradients.primary }}
+              >
+                <FaMapMarkerAlt className="w-4 h-4" />
+              </span>
+              <span className="text-sm">
+                123 Cotton Street
+                <br />
+                Mumbai, India 400001
+              </span>
+            </p>
+            <p className="flex items-center gap-3">
+              <span
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                style={{ background: COLORS.gradients.primary }}
+              >
+                <FaEnvelope className="w-4 h-4" />
+              </span>
+              hello@purecotton.com
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="font-semibold mb-3 md:mb-4 text-gray-800 text-xs md:text-sm">
+            Follow Us
+          </h3>
+          <div className="flex gap-4 mb-6">
+            <a
+              href="#"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform"
+              style={{ background: COLORS.gradients.primary }}
+            >
+              <FiInstagram className="w-5 h-5" />
+            </a>
+            <a
+              href="#"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform"
+              style={{ background: COLORS.gradients.primary }}
+            >
+              <FiFacebook className="w-5 h-5" />
+            </a>
+            <a
+              href="#"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform"
+              style={{ background: COLORS.gradients.primary }}
+            >
+              <FaTiktok className="w-5 h-5" />
+            </a>
+            <a
+              href="#"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform"
+              style={{ background: COLORS.gradients.primary }}
+            >
+              <FaWhatsapp className="w-5 h-5" />
+            </a>
+          </div>
+          <p className="text-xs text-gray-500">
+            Subscribe to our newsletter for exclusive offers
+          </p>
         </div>
       </div>
 
-      {/* Order Detail Modal */}
-      <OrderDetailModal
-        order={selectedOrder}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      <div className="flex flex-col md:flex-row justify-between items-center pt-6 md:pt-8 border-t border-gray-300 text-xs text-gray-600 gap-4 md:gap-0">
+        <p className="text-center md:text-left">
+          © 2024 Pure Cotton Clothing. All rights reserved.
+        </p>
+        <div className="flex gap-4 md:gap-6">
+          <a href="#" className="hover:text-gray-900 text-xs">
+            Privacy Policy
+          </a>
+          <a href="#" className="hover:text-gray-900 text-xs">
+            Terms of Service
+          </a>
+          <a href="#" className="hover:text-gray-900 text-xs">
+            Cotton Quality Promise
+          </a>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+// Main Contact Page Component
+const ContactPage = () => {
+  return (
+    <div className="bg-white">
+      <ContactHero />
+      <ContactInfo />
+      <ContactForm />
+      <FAQSection />
+      <MapSection />
+      <SocialConnect />
+      <Footer />
     </div>
   );
 };
 
-export default UserProfile;
+export default ContactPage;

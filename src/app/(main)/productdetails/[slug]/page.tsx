@@ -70,9 +70,10 @@ const useSubmitReview = () => {
         );
 
         if (!reviewResponse.ok) {
-          const errorText = await reviewResponse.text();
-          console.error("Review submission failed:", errorText);
-          throw new Error("Failed to submit review");
+          console.log(
+            "Review submission failed with status:",
+            reviewResponse.body
+          );
         }
 
         const reviewData = await reviewResponse.json();
@@ -96,7 +97,7 @@ const useSubmitReview = () => {
 
         if (!productReviewId) {
           console.warn("Could not get review ID from response", reviewData);
-          toast.error("Review submitted but could not upload images");
+          toast.error("review submission fail");
           return reviewData;
         }
 
@@ -124,7 +125,7 @@ const useSubmitReview = () => {
               if (!mediaResponse.ok) {
                 const errorText = await mediaResponse.text();
                 console.warn(`Failed to upload media ${i + 1}:`, errorText);
-                toast.error(`Failed to upload image: ${imageData.file.name}`);
+                // toast.error(`Failed to upload image: ${imageData.file.name}`);
               } else {
                 const mediaResult = await mediaResponse.json();
                 console.log(`Media ${i + 1} uploaded:`, mediaResult);
@@ -245,12 +246,14 @@ const ReviewSkeleton = () => (
 );
 
 // ============================================
-// MOBILE-FRIENDLY IMAGE GALLERY MODAL
+// MOBILE-FRIENDLY IMAGE GALLERY MODAL - OPTIMIZED
 // ============================================
 const GalleryModal = ({ images, onClose, initialIndex = 0 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -264,10 +267,14 @@ const GalleryModal = ({ images, onClose, initialIndex = 0 }) => {
 
   const nextImage = () => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
+    setImageLoaded(false);
+    setImageError(false);
   };
 
   const prevImage = () => {
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    setImageLoaded(false);
+    setImageError(false);
   };
 
   const handleTouchStart = (e) => {
@@ -293,6 +300,14 @@ const GalleryModal = ({ images, onClose, initialIndex = 0 }) => {
 
     setTouchStart(null);
     setTouchEnd(null);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
   };
 
   const downloadImage = () => {
@@ -327,25 +342,56 @@ const GalleryModal = ({ images, onClose, initialIndex = 0 }) => {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="w-full h-[60vh] sm:h-[70vh] flex items-center justify-center">
-            <img
-              src={images[currentIndex].url}
-              alt={`Review image ${currentIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
-            />
+          <div className="w-full h-[60vh] sm:h-[70vh] flex items-center justify-center p-2">
+            {!imageError ? (
+              <>
+                {!imageLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+                <img
+                  src={images[currentIndex].url}
+                  alt={`Review image ${currentIndex + 1}`}
+                  className={`max-w-full max-h-full object-contain transition-opacity duration-300 ${
+                    imageLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={handleImageLoad}
+                  onError={handleImageError}
+                  style={{
+                    imageRendering: "crisp-edges",
+                    WebkitUserSelect: "none",
+                    userSelect: "none",
+                    maxHeight: "100%",
+                    maxWidth: "100%",
+                    width: "auto",
+                    height: "auto",
+                  }}
+                />
+              </>
+            ) : (
+              <div className="text-center p-4">
+                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-300 text-sm sm:text-base">
+                  Failed to load image
+                </p>
+              </div>
+            )}
           </div>
 
           {images.length > 1 && (
             <>
               <button
                 onClick={prevImage}
-                className="hidden sm:block absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 sm:p-3 rounded-full backdrop-blur-sm transition-all hover:scale-110"
+                className="hidden sm:block absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 sm:p-3 rounded-full backdrop-blur-sm transition-all hover:scale-110 z-10"
               >
                 <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
               </button>
               <button
                 onClick={nextImage}
-                className="hidden sm:block absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 sm:p-3 rounded-full backdrop-blur-sm transition-all hover:scale-110"
+                className="hidden sm:block absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 sm:p-3 rounded-full backdrop-blur-sm transition-all hover:scale-110 z-10"
               >
                 <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
               </button>
@@ -353,13 +399,13 @@ const GalleryModal = ({ images, onClose, initialIndex = 0 }) => {
           )}
 
           {images.length > 1 && (
-            <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium">
+            <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium z-10">
               {currentIndex + 1} / {images.length}
             </div>
           )}
 
           {images.length > 1 && (
-            <div className="sm:hidden absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-1 text-white/70 text-xs">
+            <div className="sm:hidden absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-1 text-white/70 text-xs z-10">
               <ChevronLeft className="w-3 h-3" />
               <span>Swipe to navigate</span>
               <ChevronRight className="w-3 h-3" />
@@ -388,7 +434,11 @@ const GalleryModal = ({ images, onClose, initialIndex = 0 }) => {
             {images.map((image, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentIndex(index)}
+                onClick={() => {
+                  setCurrentIndex(index);
+                  setImageLoaded(false);
+                  setImageError(false);
+                }}
                 className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all ${
                   currentIndex === index
                     ? "border-white scale-105"
@@ -399,6 +449,7 @@ const GalleryModal = ({ images, onClose, initialIndex = 0 }) => {
                   src={image.url}
                   alt={`Thumbnail ${index + 1}`}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </button>
             ))}
@@ -410,7 +461,7 @@ const GalleryModal = ({ images, onClose, initialIndex = 0 }) => {
 };
 
 // ============================================
-// MOBILE-FRIENDLY REVIEW CARD
+// MOBILE-FRIENDLY REVIEW CARD - OPTIMIZED
 // ============================================
 const ReviewCard = ({ review, onImageClick }) => {
   const [expanded, setExpanded] = useState(false);
@@ -489,21 +540,36 @@ const ReviewCard = ({ review, onImageClick }) => {
                     onClick={() =>
                       onImageClick && onImageClick(review.media, idx)
                     }
-                    className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-all group relative"
+                    className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-all group relative bg-white"
                   >
                     {mediaItem.type === "image" ? (
                       <>
                         <img
                           src={mediaItem.url}
                           alt="Review"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                          style={{
+                            minWidth: "100%",
+                            minHeight: "100%",
+                          }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            e.currentTarget.parentElement.innerHTML = `
+                              <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                                </svg>
+                              </div>
+                            `;
+                          }}
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                       </>
                     ) : (
                       <div className="w-full h-full bg-gray-900 flex items-center justify-center">
                         <svg
-                          className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                          className="w-6 h-6 sm:w-8 sm:h-8 text-white"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -523,7 +589,7 @@ const ReviewCard = ({ review, onImageClick }) => {
 };
 
 // ============================================
-// MOBILE-FRIENDLY CUSTOMER PHOTOS GALLERY
+// MOBILE-FRIENDLY CUSTOMER PHOTOS GALLERY - OPTIMIZED
 // ============================================
 const CustomerPhotosGallery = ({ reviews, onImageClick }) => {
   const allReviewImages = reviews.flatMap(
@@ -552,12 +618,27 @@ const CustomerPhotosGallery = ({ reviews, onImageClick }) => {
           <button
             key={`${image.id}-${index}`}
             onClick={() => onImageClick && onImageClick(allReviewImages, index)}
-            className="aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-all group relative"
+            className="aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-all group relative bg-white"
           >
             <img
               src={image.url}
               alt="Customer photo"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+              style={{
+                minWidth: "100%",
+                minHeight: "100%",
+              }}
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                e.currentTarget.parentElement.innerHTML = `
+                  <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                    </svg>
+                  </div>
+                `;
+              }}
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -729,6 +810,7 @@ const RatingModal = ({
   const [hoverRating, setHoverRating] = useState(0);
   const user = useAppSelector(selectUser);
   const userId = user?.id || null;
+  const router = useRouter();
 
   const submitReviewMutation = useSubmitReview();
 
@@ -825,6 +907,8 @@ const RatingModal = ({
 
     if (!userId) {
       toast.error("Please login to submit a review");
+      router.push("/login");
+
       return;
     }
 
@@ -1128,7 +1212,7 @@ const BenefitsBadges = () => (
 );
 
 // ============================================
-// MAIN PRODUCT PAGE COMPONENT - FIXED VERSION
+// MAIN PRODUCT PAGE COMPONENT - OPTIMIZED FOR LARGE IMAGES
 // ============================================
 const ProductPage = () => {
   const { slug } = useParams();
@@ -1155,6 +1239,7 @@ const ProductPage = () => {
   const [activeReviewTab, setActiveReviewTab] = useState("all");
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [mainImageLoaded, setMainImageLoaded] = useState(false);
 
   const [reviews, setReviews] = useState([]);
   const [totalReviews, setTotalReviews] = useState(0);
@@ -1359,16 +1444,19 @@ const ProductPage = () => {
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % productMedia.length);
+    setMainImageLoaded(false);
   };
 
   const prevSlide = () => {
     setCurrentSlide(
       (prev) => (prev - 1 + productMedia.length) % productMedia.length
     );
+    setMainImageLoaded(false);
   };
 
   const handleColorChange = (color) => {
     setSelectedColor(color);
+    setMainImageLoaded(false);
 
     if (color.images && color.images.length > 0) {
       const media = color.images.map((img) => ({
@@ -1389,9 +1477,11 @@ const ProductPage = () => {
         setSelectedSizeVariant(inStockSize);
       } else {
         setSelectedSize("");
+        setSelectedSizeVariant({});
       }
     } else {
       setSelectedSize("");
+      setSelectedSizeVariant({});
     }
   };
 
@@ -1405,22 +1495,41 @@ const ProductPage = () => {
     setSelectedSizeVariant(sizeVariant);
   };
 
+  // Helper function to get current price based on size variant
+  const getCurrentPrice = () => {
+    if (isPromotion) return 0;
+    if (selectedSizeVariant && selectedSizeVariant.price) {
+      return selectedSizeVariant.price;
+    }
+    return product?.basePrice || 0;
+  };
+
+  const getCurrentOriginalPrice = () => {
+    if (isPromotion) return product?.basePrice || 0;
+    return product?.originalPrice || (product?.basePrice || 0) * 1.5;
+  };
+
+  const displayPrice = getCurrentPrice();
+  const displayOriginalPrice = getCurrentOriginalPrice();
+
+  const discountPercentage = isPromotion
+    ? 100
+    : Math.round(
+        ((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100
+      );
+
   const handleAddToCart = () => {
-    if (!selectedColor || !selectedSize) {
+    if (!product || !selectedColor || !selectedSize) {
       toast.error("Please select color and size");
       return;
     }
-
-    const selectedSizeVariant = selectedColor.sizeVariants.find(
-      (sv) => sv.size === selectedSize
-    );
 
     if (!selectedSizeVariant || selectedSizeVariant.availableStock === 0) {
       toast.error("This item is out of stock");
       return;
     }
 
-    const finalPrice = isPromotion ? 0 : parseFloat(product.basePrice);
+    const finalPrice = isPromotion ? 0 : parseFloat(displayPrice);
 
     const cartObject = {
       productId: product.id,
@@ -1434,6 +1543,7 @@ const ProductPage = () => {
       size: selectedSize,
       quantity: 1,
       price: finalPrice,
+      sizeVariantPrice: selectedSizeVariant.price,
       sku: selectedSizeVariant.sku,
       image: selectedColor.images?.[0]?.url || "",
       availableStock: selectedSizeVariant.availableStock,
@@ -1535,17 +1645,6 @@ const ProductPage = () => {
   const allSizes = selectedColor?.sizeVariants || [];
   const hasInStockSizes = allSizes.some((sv) => sv.availableStock > 0);
 
-  const displayPrice = isPromotion ? 0 : product.basePrice;
-  const displayOriginalPrice = isPromotion
-    ? product.basePrice
-    : product.originalPrice || product.basePrice * 1.5;
-
-  const discountPercentage = isPromotion
-    ? 100
-    : Math.round(
-        ((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100
-      );
-
   return (
     <>
       <div className="max-w-7xl pt-16 mb-14 mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
@@ -1571,26 +1670,59 @@ const ProductPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-12 mb-8 sm:mb-12">
           <div>
-            <div className="relative bg-gray-50 rounded-xl overflow-hidden aspect-square sm:aspect-[3/4] mb-2 sm:mb-3">
+            <div className="relative bg-white rounded-xl overflow-hidden aspect-square sm:aspect-[3/4] mb-2 sm:mb-3 border border-gray-200">
               {productMedia.length > 0 ? (
                 productMedia[currentSlide].type === "image" ? (
-                  <img
-                    src={productMedia[currentSlide].url}
-                    alt="Product"
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="relative w-full h-full flex items-center justify-center bg-white">
+                    {!mainImageLoaded && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-8 h-8 sm:w-12 sm:h-12 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
+                    <img
+                      src={productMedia[currentSlide].url}
+                      alt="Product"
+                      className={`max-w-full max-h-full object-contain transition-opacity duration-300 ${
+                        mainImageLoaded ? "opacity-100" : "opacity-0"
+                      }`}
+                      loading="eager"
+                      decoding="async"
+                      onLoad={() => setMainImageLoaded(true)}
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://via.placeholder.com/300x400?text=No+Image";
+                        setMainImageLoaded(true);
+                      }}
+                      style={{
+                        imageRendering: "crisp-edges",
+                        WebkitUserDrag: "none",
+                        WebkitUserSelect: "none",
+                        userSelect: "none",
+                        maxHeight: "100%",
+                        maxWidth: "100%",
+                        width: "auto",
+                        height: "auto",
+                      }}
+                    />
+                  </div>
                 ) : (
                   <video
                     src={productMedia[currentSlide].url}
                     controls
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-black"
                     autoPlay
                     loop
                     playsInline
+                    preload="metadata"
+                    style={{
+                      maxHeight: "100%",
+                      maxWidth: "100%",
+                    }}
                   />
                 )
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+                  <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
                   <p className="text-gray-400 text-sm">No image available</p>
                 </div>
               )}
@@ -1599,13 +1731,13 @@ const ProductPage = () => {
                 <>
                   <button
                     onClick={prevSlide}
-                    className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-1.5 sm:p-2 rounded-full shadow"
+                    className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-1.5 sm:p-2 rounded-full shadow border border-gray-200"
                   >
                     <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
                   <button
                     onClick={nextSlide}
-                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-1.5 sm:p-2 rounded-full shadow"
+                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-1.5 sm:p-2 rounded-full shadow border border-gray-200"
                   >
                     <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
@@ -1613,24 +1745,24 @@ const ProductPage = () => {
               )}
 
               {discountPercentage > 0 && (
-                <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
+                <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-semibold z-10">
                   -{discountPercentage}%
                 </div>
               )}
 
-              <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex flex-col gap-1.5 sm:gap-2">
+              <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex flex-col gap-1.5 sm:gap-2 z-10">
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="bg-white p-1.5 sm:p-2 rounded-lg shadow hover:shadow-md"
+                  className="bg-white p-1.5 sm:p-2 rounded-lg shadow hover:shadow-md border border-gray-200"
                 >
                   <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
                 <button
                   onClick={toggleWishlist}
-                  className={`p-1.5 sm:p-2 rounded-lg shadow hover:shadow-md ${
+                  className={`p-1.5 sm:p-2 rounded-lg shadow hover:shadow-md border ${
                     isWishlisted
-                      ? "bg-red-50 text-red-500"
-                      : "bg-white text-gray-700"
+                      ? "bg-red-50 text-red-500 border-red-200"
+                      : "bg-white text-gray-700 border-gray-200"
                   }`}
                 >
                   <Heart
@@ -1643,27 +1775,39 @@ const ProductPage = () => {
             </div>
 
             {productMedia.length > 1 && (
-              <div className="flex space-x-1.5 sm:space-x-2 overflow-x-auto pb-1">
+              <div className="flex space-x-1.5 sm:space-x-2 overflow-x-auto pb-1 pt-2">
                 {productMedia.map((media, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setCurrentSlide(idx)}
-                    className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border ${
+                    onClick={() => {
+                      setCurrentSlide(idx);
+                      setMainImageLoaded(false);
+                    }}
+                    className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${
                       currentSlide === idx
                         ? "border-gray-900"
-                        : "border-gray-200"
-                    }`}
+                        : "border-gray-200 hover:border-gray-400"
+                    } bg-white flex items-center justify-center`}
                   >
                     {media.type === "image" ? (
                       <img
                         src={media.url}
-                        alt=""
+                        alt={`Thumbnail ${idx + 1}`}
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        style={{
+                          minWidth: "100%",
+                          minHeight: "100%",
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            "https://via.placeholder.com/100x100?text=Image";
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-900 flex items-center justify-center">
                         <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5 text-white"
+                          className="w-6 h-6 sm:w-8 sm:h-8 text-white"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -1708,10 +1852,12 @@ const ProductPage = () => {
               </div>
             </div>
 
+            {/* Show price variation notice when size variant price differs from base price */}
+
             {isPromotion && (
               <div className="mb-4 sm:mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-2 sm:p-3">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-green-800 text-sm sm:text-base">
                       🎉 Special Promotion!
@@ -1773,23 +1919,29 @@ const ProductPage = () => {
                   {allSizes.map((sizeVariant) => {
                     const isOutOfStock = sizeVariant.availableStock === 0;
                     const isSelected = selectedSize === sizeVariant.size;
+                    const sizePrice = sizeVariant.price || product.basePrice;
+                    const isDifferentPrice = sizePrice !== product.basePrice;
 
                     return (
                       <button
                         key={sizeVariant.id}
                         onClick={() => handleSizeClick(sizeVariant)}
                         disabled={isOutOfStock}
-                        className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all ${
+                        className={`relative px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all ${
                           isOutOfStock
                             ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                             : isSelected
                             ? "bg-gray-900 text-white border-gray-900"
                             : "bg-white border-gray-300 hover:border-gray-900"
                         }`}
+                        title={isDifferentPrice ? `Price: ₹${sizePrice}` : ""}
                       >
                         {sizeVariant.size}
                         {isOutOfStock && (
                           <XCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400 inline-block ml-1" />
+                        )}
+                        {isDifferentPrice && (
+                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
                         )}
                       </button>
                     );
@@ -1901,11 +2053,21 @@ const ProductPage = () => {
                   }
                   className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98]"
                 >
-                  <div className="aspect-square sm:aspect-[3/4] bg-gray-100">
+                  <div className="aspect-square sm:aspect-[3/4] bg-gray-100 relative">
                     <img
                       src={getPrimaryImage(relProduct)}
                       alt={relProduct.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
+                      style={{
+                        maxHeight: "100%",
+                        maxWidth: "100%",
+                        width: "auto",
+                        height: "auto",
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                      }}
                       onError={(e) => {
                         e.currentTarget.src =
                           "https://via.placeholder.com/300x400?text=No+Image";

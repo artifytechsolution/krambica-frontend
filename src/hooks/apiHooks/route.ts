@@ -122,4 +122,11 @@ export const apiRoutes = {
       url: `${BASE_URL}/api/review/products`,
     },
   },
+  uploadReviews: {
+    POST: {
+      query: "UPLOAD REVIEW IMAGES",
+      method: "POST",
+      url: `${BASE_URL}/api/review/products`,
+    },
+  },
 };

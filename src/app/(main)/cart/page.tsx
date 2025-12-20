@@ -4198,7 +4198,7 @@ export default function KrambicaCart() {
   const subtotal = cartTotal || 0;
   const discount = appliedCoupon?.discountAmount || 0;
   const subtotalAfterDiscount = subtotal - discount - promotionDiscount;
-  const tax = Math.round((subtotalAfterDiscount * 18) / 100);
+  const tax = 0;
   const total = subtotalAfterDiscount + tax;
   const itemCount =
     cartItems?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
@@ -4353,7 +4353,7 @@ export default function KrambicaCart() {
         if (verifyResult.success) {
           showSnackbar("🎉 Free order placed successfully!", "success");
           dispatch(clearCart()); // Clear cart immediately
-          router.push(`/order-confirmation/${internalOrderId}`);
+          router.push(`/home`);
         } else {
           throw new Error(verifyResult.error || "Failed to confirm free order");
         }
@@ -4383,7 +4383,7 @@ export default function KrambicaCart() {
             if (verifyResult.success) {
               showSnackbar("✅ Payment successful!", "success");
               dispatch(clearCart()); // Clear cart immediately after successful payment
-              router.push(`/order-confirmation/${internalOrderId}`);
+              router.push(`/home`);
             } else {
               showSnackbar("Payment verification failed", "error");
               console.error("Payment verification failed:", verifyResult.error);
@@ -4413,8 +4413,9 @@ export default function KrambicaCart() {
         },
       };
 
+      //@ts-ignore
       const razorpayInstance = new window.Razorpay(options);
-      razorpayInstance.on("payment.failed", function (response) {
+      razorpayInstance.on("payment.failed", function (response: any) {
         console.error("Payment failed:", response.error);
         showSnackbar(`Payment failed: ${response.error.description}`, "error");
         setIsCheckoutLoading(false);

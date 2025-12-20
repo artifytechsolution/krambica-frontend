@@ -25,6 +25,7 @@ const {
   addProductwiseReviews,
   GetProductSummery,
   getProductByID,
+  uploadReviews,
 } = apiRoutes;
 
 export const useUserLogin = () => {
@@ -242,6 +243,18 @@ export const useGetProductById = () => {
     const response = await callApi({
       method,
       url: `${url}/${data.productId}`,
+      data,
+    });
+    return response;
+  });
+};
+export const useUploadReviews = () => {
+  const { url, method } = uploadReviews.POST;
+  const callApi = useAxios();
+  return useMutation<any, string, any>(async (data) => {
+    const response = await callApi({
+      method,
+      url: `${url}/${data.productId}/reviews`,
       data,
     });
     return response;
