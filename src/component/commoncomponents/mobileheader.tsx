@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
+import { useRouter } from "next/navigation"; // <-- Add this import
 import {
   AppBar,
   Toolbar,
@@ -48,6 +49,16 @@ export default function MobileHeader({
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
 
+  const router = useRouter(); // <-- Add router for proper client-side navigation
+
+  const handleLogout = () => {
+    // Clear all data from localStorage (e.g., auth token, user info, etc.)
+
+    // Redirect to login page using Next.js client-side navigation
+    localStorage.clear();
+    window.location.href = "/login";
+  };
+
   const menuItems = [
     { text: "Home", icon: Home, href: "/home" },
     { text: "Shop", icon: Store, href: "/shop" },
@@ -56,7 +67,12 @@ export default function MobileHeader({
     { text: "About", icon: Info, href: "/about" },
     { text: "Contact", icon: Mail, href: "/contact" },
     { text: "My Account", icon: UserCircle, href: "/profile" },
-    { text: "Logout", icon: UserCircle, href: "/logout" },
+    {
+      text: "Logout",
+      icon: UserCircle,
+      // Remove href so it doesn't navigate via Link
+      // href: "/login", // <-- Removed
+    },
   ];
 
   return (
@@ -131,7 +147,7 @@ export default function MobileHeader({
             </IconButton>
 
             {/* Notification Icon */}
-            <IconButton
+            {/* <IconButton
               onClick={() => setNotificationOpen(true)}
               className="text-black hover:bg-gray-100 active:scale-95 transition-all"
               size="small"
@@ -165,7 +181,7 @@ export default function MobileHeader({
                   strokeWidth={2.5}
                 />
               </Badge>
-            </IconButton>
+            </IconButton> */}
 
             {/* Wishlist Icon */}
             <IconButton
@@ -290,6 +306,75 @@ export default function MobileHeader({
         >
           {menuItems.map((item, index) => {
             const IconComponent = item.icon;
+
+            // Special handling for Logout item
+            if (item.text === "Logout") {
+              return (
+                <React.Fragment key={item.text}>
+                  <ListItem
+                    disablePadding
+                    sx={{
+                      marginBottom: { xs: "2px", sm: "4px" },
+                    }}
+                  >
+                    <ListItemButton
+                      onClick={handleLogout}
+                      className="text-black hover:bg-gray-100 active:bg-gray-200 transition-all rounded-xl group"
+                      sx={{
+                        padding: { xs: "12px 16px", sm: "14px 16px" },
+                        borderRadius: "12px",
+                        "&:active": {
+                          transform: "scale(0.98)",
+                        },
+                      }}
+                    >
+                      <ListItemIcon
+                        className="text-black group-hover:text-gray-700 transition-colors"
+                        sx={{
+                          minWidth: { xs: "36px", sm: "40px" },
+                        }}
+                      >
+                        <IconComponent
+                          style={{
+                            width: "clamp(18px, 4vw, 20px)",
+                            height: "clamp(18px, 4vw, 20px)",
+                          }}
+                          strokeWidth={2.5}
+                        />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.text}
+                        primaryTypographyProps={{
+                          className:
+                            "font-semibold text-black group-hover:text-gray-700",
+                          sx: {
+                            fontSize: { xs: "0.9375rem", sm: "1rem" },
+                          },
+                        }}
+                      />
+                      <ChevronRight
+                        className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{
+                          width: "clamp(16px, 3.5vw, 18px)",
+                          height: "clamp(16px, 3.5vw, 18px)",
+                        }}
+                        strokeWidth={2.5}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                  {index === 3 && (
+                    <Divider
+                      sx={{
+                        marginY: { xs: "8px", sm: "12px" },
+                        borderColor: "rgba(0, 0, 0, 0.08)",
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            }
+
+            // Normal menu items
             return (
               <React.Fragment key={item.text}>
                 <ListItem

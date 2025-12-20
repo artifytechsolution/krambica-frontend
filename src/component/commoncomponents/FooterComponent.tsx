@@ -1,121 +1,165 @@
-"use client"
-import React, { useState } from 'react';
-import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin, Send, Heart, CreditCard, Shield, Truck, RotateCcw, Award } from 'lucide-react';
+"use client";
+import React, { useState } from "react";
+import {
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+  Mail,
+  Phone,
+  MapPin,
+  ArrowRight,
+  CheckCircle,
+  CreditCard,
+  ShieldCheck,
+  Globe,
+  Heart,
+} from "lucide-react";
 
-export default function Footer() {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+export default function PremiumFooter() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle"); // idle, loading, success
 
   const handleSubscribe = (e) => {
     e.preventDefault();
-    if (email) {
-      setSubscribed(true);
-      setEmail('');
-      setTimeout(() => setSubscribed(false), 3000);
-    }
+    if (!email) return;
+    setStatus("loading");
+
+    // Simulate API call
+    setTimeout(() => {
+      setStatus("success");
+      setEmail("");
+      setTimeout(() => setStatus("idle"), 3000);
+    }, 1500);
   };
 
   return (
-    <footer className="bg-gradient-to-b hidden sm:block from-gray-900 via-gray-800 to-gray-900 text-white">
-      {/* Newsletter Section */}
-      <div className="border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-center md:text-left">
-              <h3 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                Join Our Fashion Community
-              </h3>
-              <p className="text-gray-400 text-sm md:text-base">
-                Subscribe to get exclusive offers, style tips, and early access to new collections
+    <footer className="bg-zinc-950 text-zinc-300 font-sans border-t border-zinc-900 hidden md:block">
+      {/* Top Section: Newsletter & Brand Promise */}
+      <div className="relative overflow-hidden">
+        {/* Decorative background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-teal-900/10 blur-[100px] rounded-full pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Text Content */}
+            <div className="text-center lg:text-left space-y-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                Unlock the World of{" "}
+                <span className="text-teal-500">Krambica</span>
+              </h2>
+              <p className="text-zinc-400 max-w-md mx-auto lg:mx-0 text-lg">
+                Join our exclusive community for early access to drops, styling
+                guides, and a flat 10% off your first order.
+              </p>
+
+              <div className="flex flex-wrap justify-center lg:justify-start gap-6 pt-4 text-sm font-medium text-zinc-500">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-teal-500" /> Secure
+                  Checkout
+                </div>
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-teal-500" /> Global Shipping
+                </div>
+              </div>
+            </div>
+
+            {/* Input Form */}
+            <div className="w-full max-w-md mx-auto lg:ml-auto">
+              <form onSubmit={handleSubscribe} className="relative group">
+                <div className="relative flex items-center bg-zinc-900/50 border border-zinc-800 rounded-full p-1.5 focus-within:border-teal-500/50 focus-within:ring-4 focus-within:ring-teal-500/10 transition-all duration-300">
+                  <Mail className="w-5 h-5 text-zinc-500 ml-4 shrink-0" />
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-transparent border-none text-white placeholder-zinc-600 focus:ring-0 px-4 py-3"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={status === "loading" || status === "success"}
+                    className={`
+                      px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 flex items-center gap-2
+                      ${
+                        status === "success"
+                          ? "bg-green-500 text-white"
+                          : "bg-white text-zinc-950 hover:bg-teal-50"
+                      }
+                    `}
+                  >
+                    {status === "loading" ? (
+                      <span className="animate-pulse">Processing...</span>
+                    ) : status === "success" ? (
+                      <>
+                        Joined <CheckCircle className="w-4 h-4" />
+                      </>
+                    ) : (
+                      <>
+                        Subscribe <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+              <p className="text-xs text-zinc-600 mt-3 text-center lg:text-left pl-4">
+                By subscribing, you agree to our Privacy Policy.
               </p>
             </div>
-            <form onSubmit={handleSubscribe} className="w-full md:w-auto flex gap-2">
-              <div className="relative flex-1 md:w-80">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 rounded-lg font-bold transition-all hover:shadow-lg hover:scale-105 flex items-center gap-2 whitespace-nowrap"
-              >
-                <Send className="w-5 h-5" />
-                Subscribe
-              </button>
-            </form>
           </div>
-          {subscribed && (
-            <div className="mt-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-center">
-              <p className="text-green-400 font-semibold">✓ Successfully subscribed! Check your email for exclusive offers.</p>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
-          {/* Brand Column */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-2xl font-serif">K</span>
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+
+      {/* Middle Section: Links Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-y-12 gap-x-8">
+          {/* Brand Column (Span 4) */}
+          <div className="col-span-2 md:col-span-4 lg:col-span-4 space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-teal-500 rounded-lg flex items-center justify-center text-zinc-950 font-bold text-xl font-serif">
+                K
               </div>
-              <div>
-                <h2 className="text-2xl font-bold font-serif tracking-tight">KRAMBICA</h2>
-                <p className="text-xs text-teal-400">Premium Fashion</p>
-              </div>
+              <span className="text-2xl font-bold text-white tracking-wide font-serif">
+                KRAMBICA
+              </span>
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              Discover timeless elegance and contemporary style. We curate premium fashion pieces that empower you to express your unique personality with confidence and grace.
+            <p className="text-zinc-500 text-sm leading-relaxed max-w-xs">
+              Curating premium fashion that empowers individual expression.
+              Designed in India, worn globally.
             </p>
-            
-            {/* Social Media */}
-            <div className="mb-6">
-              <h4 className="text-sm font-bold mb-3 text-gray-300">Connect With Us</h4>
-              <div className="flex gap-3">
-                <a href="#" className="w-10 h-10 bg-gray-800 hover:bg-gradient-to-br hover:from-teal-600 hover:to-cyan-600 rounded-lg flex items-center justify-center transition-all hover:scale-110 group">
-                  <Facebook className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+            <div className="flex gap-4">
+              {[Facebook, Instagram, Twitter, Youtube].map((Icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 hover:bg-teal-500 hover:text-white transition-all duration-300 hover:-translate-y-1"
+                >
+                  <Icon className="w-4 h-4" />
                 </a>
-                <a href="#" className="w-10 h-10 bg-gray-800 hover:bg-gradient-to-br hover:from-pink-600 hover:to-purple-600 rounded-lg flex items-center justify-center transition-all hover:scale-110 group">
-                  <Instagram className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-                </a>
-                <a href="#" className="w-10 h-10 bg-gray-800 hover:bg-gradient-to-br hover:from-blue-500 hover:to-blue-600 rounded-lg flex items-center justify-center transition-all hover:scale-110 group">
-                  <Twitter className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-                </a>
-                <a href="#" className="w-10 h-10 bg-gray-800 hover:bg-gradient-to-br hover:from-red-600 hover:to-red-700 rounded-lg flex items-center justify-center transition-all hover:scale-110 group">
-                  <Youtube className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-                </a>
-              </div>
-            </div>
-
-            {/* Trust Badges */}
-            <div className="flex flex-wrap gap-2">
-              <div className="px-3 py-1.5 bg-gray-800 rounded-full text-xs font-medium flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-green-400" />
-                <span>100% Secure</span>
-              </div>
-              <div className="px-3 py-1.5 bg-gray-800 rounded-full text-xs font-medium flex items-center gap-1.5">
-                <Award className="w-3.5 h-3.5 text-yellow-400" />
-                <span>Authentic</span>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Shop Links */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-white">Shop</h3>
-            <ul className="space-y-3">
-              {['New Arrivals', 'Dresses', 'Tops & Blouses', 'Bottoms', 'Outerwear', 'Accessories', 'Sale', 'Gift Cards'].map((item) => (
+          {/* Links Column 1 */}
+          <div className="col-span-1 lg:col-span-2 lg:col-start-6">
+            <h3 className="text-white font-semibold mb-6">Shop</h3>
+            <ul className="space-y-4 text-sm">
+              {[
+                "New Arrivals",
+                "Best Sellers",
+                "Clothing",
+                "Accessories",
+                "Sale",
+              ].map((item) => (
                 <li key={item}>
-                  <a href="#" className="text-gray-400 hover:text-teal-400 text-sm transition-colors flex items-center group">
-                    <span className="w-0 group-hover:w-2 h-0.5 bg-teal-400 mr-0 group-hover:mr-2 transition-all duration-300"></span>
+                  <a
+                    href="#"
+                    className="text-zinc-400 hover:text-teal-400 transition-colors flex items-center gap-2 group"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-transparent group-hover:bg-teal-400 transition-all" />
                     {item}
                   </a>
                 </li>
@@ -123,14 +167,23 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Customer Service */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-white">Customer Care</h3>
-            <ul className="space-y-3">
-              {['My Account', 'Track Order', 'Shipping Info', 'Returns & Exchanges', 'Size Guide', 'FAQs', 'Contact Us', 'Store Locator'].map((item) => (
+          {/* Links Column 2 */}
+          <div className="col-span-1 lg:col-span-2">
+            <h3 className="text-white font-semibold mb-6">Support</h3>
+            <ul className="space-y-4 text-sm">
+              {[
+                "Track Order",
+                "Returns",
+                "Shipping Info",
+                "Size Guide",
+                "Help Center",
+              ].map((item) => (
                 <li key={item}>
-                  <a href="#" className="text-gray-400 hover:text-teal-400 text-sm transition-colors flex items-center group">
-                    <span className="w-0 group-hover:w-2 h-0.5 bg-teal-400 mr-0 group-hover:mr-2 transition-all duration-300"></span>
+                  <a
+                    href="#"
+                    className="text-zinc-400 hover:text-teal-400 transition-colors flex items-center gap-2 group"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-transparent group-hover:bg-teal-400 transition-all" />
                     {item}
                   </a>
                 </li>
@@ -138,98 +191,81 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Company & Contact */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-white">Company</h3>
-            <ul className="space-y-3 mb-6">
-              {['About Us', 'Careers', 'Sustainability', 'Press & Media', 'Affiliates', 'Blog'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-gray-400 hover:text-teal-400 text-sm transition-colors flex items-center group">
-                    <span className="w-0 group-hover:w-2 h-0.5 bg-teal-400 mr-0 group-hover:mr-2 transition-all duration-300"></span>
-                    {item}
-                  </a>
-                </li>
-              ))}
+          {/* Links Column 3 (Contact) */}
+          <div className="col-span-2 md:col-span-2 lg:col-span-3">
+            <h3 className="text-white font-semibold mb-6">Contact Us</h3>
+            <ul className="space-y-4 text-sm">
+              <li className="flex items-start gap-3 text-zinc-400">
+                <MapPin className="w-5 h-5 text-teal-500 shrink-0" />
+                <span>
+                  123 Fashion Avenue,
+                  <br />
+                  Mumbai, MH 400001
+                </span>
+              </li>
+              <li className="flex items-center gap-3 text-zinc-400">
+                <Phone className="w-5 h-5 text-teal-500 shrink-0" />
+                <a
+                  href="tel:+911234567890"
+                  className="hover:text-white transition-colors"
+                >
+                  +91 123 456 7890
+                </a>
+              </li>
+              <li className="flex items-center gap-3 text-zinc-400">
+                <Mail className="w-5 h-5 text-teal-500 shrink-0" />
+                <a
+                  href="mailto:hello@krambica.com"
+                  className="hover:text-white transition-colors"
+                >
+                  hello@krambica.com
+                </a>
+              </li>
             </ul>
-
-            <div className="space-y-3">
-              <h4 className="text-sm font-bold text-gray-300 mb-3">Get In Touch</h4>
-              <a href="tel:+911234567890" className="flex items-center gap-2 text-gray-400 hover:text-teal-400 text-sm transition-colors group">
-                <Phone className="w-4 h-4 flex-shrink-0 text-teal-500" />
-                <span>+91 123 456 7890</span>
-              </a>
-              <a href="mailto:info@krambica.com" className="flex items-center gap-2 text-gray-400 hover:text-teal-400 text-sm transition-colors group">
-                <Mail className="w-4 h-4 flex-shrink-0 text-teal-500" />
-                <span>info@krambica.com</span>
-              </a>
-              <div className="flex items-start gap-2 text-gray-400 text-sm">
-                <MapPin className="w-4 h-4 flex-shrink-0 text-teal-500 mt-0.5" />
-                <span>123 Fashion Street<br />Mumbai, MH 400001<br />India</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        {/* Payment Methods */}
-        <div className="mt-8 pt-8 border-t border-gray-700">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-              <h4 className="text-sm font-bold text-gray-300 mb-3">We Accept</h4>
-              <div className="flex flex-wrap gap-2">
-                <div className="px-4 py-2 bg-white rounded-lg">
-                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='24' viewBox='0 0 40 24'%3E%3Crect fill='%231434CB' width='40' height='24' rx='4'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold' font-size='10'%3EVISA%3C/text%3E%3C/svg%3E" alt="Visa" className="h-6" />
-                </div>
-                <div className="px-4 py-2 bg-white rounded-lg">
-                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='24' viewBox='0 0 40 24'%3E%3Crect fill='%23EB001B' width='40' height='24' rx='4'/%3E%3Ccircle cx='15' cy='12' r='7' fill='%23FF5F00'/%3E%3Ccircle cx='25' cy='12' r='7' fill='%23F79E1B'/%3E%3C/svg%3E" alt="Mastercard" className="h-6" />
-                </div>
-                <div className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg">
-                  <span className="text-white text-xs font-bold">AMEX</span>
-                </div>
-                <div className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg">
-                  <span className="text-white text-xs font-bold">UPI</span>
-                </div>
-                <div className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg">
-                  <span className="text-white text-xs font-bold">PayTM</span>
-                </div>
-                <div className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-800 rounded-lg">
-                  <span className="text-white text-xs font-bold">G Pay</span>
-                </div>
-              </div>
-            </div>
-            <div className="text-center md:text-right">
-              <p className="text-xs text-gray-400 mb-2">Secured by</p>
-              <div className="flex gap-2">
-                <div className="px-3 py-1.5 bg-gray-800 rounded-lg text-xs font-medium">
-                  <span className="text-green-400">🔒</span> SSL
-                </div>
-                <div className="px-3 py-1.5 bg-gray-800 rounded-lg text-xs font-medium">
-                  <span className="text-blue-400">🛡️</span> PCI DSS
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-gray-700 bg-gray-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-            <div className="flex items-center gap-2">
+      {/* Bottom Section: Footer Utility */}
+      <div className="border-t border-zinc-900 bg-zinc-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            {/* Copyright */}
+            <div className="text-sm text-zinc-500 text-center md:text-left">
               <p>© 2025 Krambica. All rights reserved.</p>
-              <span className="hidden md:inline">|</span>
-              <p className="flex items-center gap-1">
-                Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> in India
-              </p>
+              <div className="flex gap-4 mt-2 justify-center md:justify-start">
+                <a href="#" className="hover:text-zinc-300 transition-colors">
+                  Privacy
+                </a>
+                <a href="#" className="hover:text-zinc-300 transition-colors">
+                  Terms
+                </a>
+                <a href="#" className="hover:text-zinc-300 transition-colors">
+                  Sitemap
+                </a>
+              </div>
             </div>
-            <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-              <a href="#" className="hover:text-teal-400 transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-teal-400 transition-colors">Terms & Conditions</a>
-              <a href="#" className="hover:text-teal-400 transition-colors">Cookie Policy</a>
-              <a href="#" className="hover:text-teal-400 transition-colors">Accessibility</a>
-              <a href="#" className="hover:text-teal-400 transition-colors">Sitemap</a>
+
+            {/* Payment Methods - Using CSS styled placeholders for cleaner code */}
+            <div className="flex items-center gap-3">
+              {["Visa", "Mastercard", "Amex", "UPI"].map((card) => (
+                <div
+                  key={card}
+                  className="h-8 px-3 bg-white/5 border border-white/10 rounded flex items-center justify-center text-[10px] font-bold tracking-wider text-zinc-400 select-none"
+                >
+                  {card}
+                </div>
+              ))}
             </div>
+          </div>
+
+          {/* Made with love */}
+          <div className="mt-8 text-center">
+            <p className="text-xs text-zinc-700 flex items-center justify-center gap-1">
+              Made with{" "}
+              <Heart className="w-3 h-3 text-zinc-600 fill-zinc-600" /> for
+              Fashion
+            </p>
           </div>
         </div>
       </div>

@@ -2,390 +2,553 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {
-  FaEdit,
-  FaMapMarkerAlt,
-  FaCheckCircle,
-  FaShippingFast,
-  FaUser,
-  FaEnvelope,
-  FaShoppingBag,
-  FaBox,
-  FaRupeeSign,
-  FaClock,
-  FaExclamationTriangle,
-  FaTruck,
-  FaCreditCard,
-  FaCalendarAlt,
-  FaTimes,
-  FaHome,
-  FaPhone,
-  FaLocationArrow,
-  FaReceipt,
-  FaTag,
-  FaInfoCircle,
-  FaSave,
-  FaSpinner,
-} from "react-icons/fa";
-import { useAppSelector } from "@src/redux/store"; // Adjust import based on your structure
-import { selectUser } from "@src/redux/reducers/authSlice"; // Adjust import based on your structure
+  MapPin,
+  Phone,
+  Mail,
+  Package,
+  Clock,
+  CheckCircle,
+  Truck,
+  CreditCard,
+  ChevronRight,
+  ChevronLeft,
+  X,
+  Download,
+  Edit2,
+  Save,
+  Loader2,
+  ShoppingBag,
+  TrendingUp,
+  AlertCircle,
+  ArrowRight,
+  Tag,
+  Hash,
+  Image as ImageIcon,
+} from "lucide-react";
 
-// Order Detail Modal Component
+// --- REDUX IMPORTS ---
+import { useAppSelector } from "@src/redux/store";
+import { selectUser } from "@src/redux/reducers/authSlice";
+
+// --- HELPER COMPONENTS ---
+
+const StatusBadge = ({ status }) => {
+  const styles = {
+    PENDING: "bg-amber-50 text-amber-700 border-amber-200",
+    PROCESSING: "bg-blue-50 text-blue-700 border-blue-200",
+    CONFIRMED: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    SHIPPED: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    DELIVERED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    CANCELLED: "bg-red-50 text-red-700 border-red-200",
+  };
+
+  const icons = {
+    PENDING: <Clock className="w-3 h-3" />,
+    PROCESSING: <Loader2 className="w-3 h-3 animate-spin" />,
+    CONFIRMED: <CheckCircle className="w-3 h-3" />,
+    SHIPPED: <Truck className="w-3 h-3" />,
+    DELIVERED: <CheckCircle className="w-3 h-3" />,
+    CANCELLED: <AlertCircle className="w-3 h-3" />,
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold border ${
+        styles[status] || "bg-gray-100 text-gray-700 border-gray-200"
+      }`}
+    >
+      {icons[status]}
+      {status}
+    </span>
+  );
+};
+
+// --- ORDER ITEM PREVIEW COMPONENT ---
+const OrderItemPreview = ({ item }) => {
+  const sizeVariant = item.sizeVariant;
+  const productColor = sizeVariant?.productColor;
+  const primaryImage =
+    productColor?.images?.find((img) => img.isPrimary) ||
+    productColor?.images?.[0];
+
+  // Get product name
+  const getProductName = () => {
+    if (productColor?.color_name) {
+      return `${productColor.color_name} Item`;
+    }
+    return "Product";
+  };
+
+  return (
+    <div className="flex items-center gap-2 bg-white border border-zinc-100 rounded-lg p-2">
+      {/* Product Image */}
+      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md overflow-hidden bg-zinc-100 border border-zinc-200 flex-shrink-0">
+        {primaryImage?.url ? (
+          <img
+            src={primaryImage.url}
+            alt={primaryImage.altText || getProductName()}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.style.display = "none";
+              e.target.parentElement.innerHTML = `
+                <div class="w-full h-full flex items-center justify-center">
+                  <svg class="w-3 h-3 sm:w-4 sm:h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+              `;
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4 text-zinc-400" />
+          </div>
+        )}
+      </div>
+
+      {/* Product Details */}
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-center">
+          <div className="min-w-0">
+            {/* Product Name */}
+            <p className="text-xs font-medium text-zinc-700 truncate">
+              {getProductName()}
+            </p>
+
+            {/* Color, Size, and Qty */}
+            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              {/* Color Swatch */}
+              {productColor?.color_code && (
+                <div
+                  className="w-2.5 h-2.5 rounded-full border border-zinc-300 flex-shrink-0"
+                  style={{ backgroundColor: productColor.color_code }}
+                  title={productColor.color_name}
+                />
+              )}
+
+              {/* Size */}
+              {sizeVariant?.size && (
+                <span className="text-[10px] text-zinc-600">
+                  Size: {sizeVariant.size}
+                </span>
+              )}
+
+              {/* Quantity */}
+              <span className="text-[10px] text-zinc-600">
+                Qty: {item.quantity}
+              </span>
+            </div>
+          </div>
+
+          {/* Price */}
+          <div className="text-right ml-2 flex-shrink-0">
+            <span className="text-xs font-semibold text-zinc-900">
+              ₹{item.price?.toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- ORDER DETAIL MODAL ---
 const OrderDetailModal = ({ order, isOpen, onClose }) => {
   if (!isOpen || !order) return null;
 
-  // Status configuration
-  const getStatusConfig = (status) => {
-    const configs = {
-      PENDING: {
-        color: "bg-yellow-100 text-yellow-800",
-        borderColor: "border-yellow-500",
-        icon: <FaClock />,
-        label: "Pending",
-      },
-      PROCESSING: {
-        color: "bg-blue-100 text-blue-800",
-        borderColor: "border-blue-500",
-        icon: <FaTruck />,
-        label: "Processing",
-      },
-      SHIPPED: {
-        color: "bg-purple-100 text-purple-800",
-        borderColor: "border-purple-500",
-        icon: <FaShippingFast />,
-        label: "Shipped",
-      },
-      DELIVERED: {
-        color: "bg-green-100 text-green-800",
-        borderColor: "border-green-500",
-        icon: <FaCheckCircle />,
-        label: "Delivered",
-      },
-      CANCELLED: {
-        color: "bg-red-100 text-red-800",
-        borderColor: "border-red-500",
-        icon: <FaExclamationTriangle />,
-        label: "Cancelled",
-      },
-    };
-
-    return (
-      configs[status] || {
-        color: "bg-gray-100 text-gray-800",
-        borderColor: "border-gray-500",
-        icon: <FaInfoCircle />,
-        label: status,
-      }
-    );
-  };
-
-  // Payment status configuration
-  const getPaymentStatusConfig = (status) => {
-    const configs = {
-      PAID: {
-        color: "bg-green-100 text-green-800",
-        label: "Paid",
-      },
-      UNPAID: {
-        color: "bg-red-100 text-red-800",
-        label: "Unpaid",
-      },
-      PENDING: {
-        color: "bg-yellow-100 text-yellow-800",
-        label: "Pending",
-      },
-    };
-
-    return (
-      configs[status] || {
-        color: "bg-gray-100 text-gray-800",
-        label: status,
-      }
-    );
-  };
-
-  // Format date
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
-      month: "short",
+      month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
   };
 
-  // Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
-      minimumFractionDigits: 2,
     }).format(amount);
   };
 
-  const statusConfig = getStatusConfig(order.status);
-  const paymentConfig = getPaymentStatusConfig(order.paymentStatus);
+  // Function to get product display details
+  const getProductDisplayInfo = (item) => {
+    const sizeVariant = item.sizeVariant;
+    const productColor = sizeVariant?.productColor;
+    const primaryImage =
+      productColor?.images?.find((img) => img.isPrimary) ||
+      productColor?.images?.[0];
+
+    // Get product name - You can customize this based on your data structure
+    let productName = "Product";
+    if (productColor?.color_name) {
+      productName = `${productColor.color_name} Item`;
+    } else if (sizeVariant?.sku) {
+      // Extract name from SKU if possible
+      const skuParts = sizeVariant.sku.split("-");
+      if (skuParts.length > 0) {
+        productName =
+          skuParts[0].charAt(0).toUpperCase() + skuParts[0].slice(1);
+      }
+    }
+
+    return {
+      imageUrl: primaryImage?.url,
+      altText: primaryImage?.altText || productName,
+      productName,
+      colorName: productColor?.color_name,
+      colorCode: productColor?.color_code,
+      size: sizeVariant?.size,
+      sku: sizeVariant?.sku,
+      price: item.price,
+      quantity: item.quantity,
+      total: item.total || item.price * item.quantity,
+    };
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Modal Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between rounded-t-2xl">
+    <div className="fixed inset-0 bg-zinc-900/60 backdrop-blur-sm flex items-center justify-center sm:p-4 z-50 animate-in fade-in duration-200">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl sm:max-w-2xl shadow-2xl overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
-            <p className="text-gray-600">Order #{order.order_id}</p>
+            <h2 className="text-lg sm:text-xl font-serif font-medium text-zinc-900">
+              Order Receipt
+            </h2>
+            <p className="text-xs sm:text-sm text-zinc-500">
+              ID:{" "}
+              <span className="font-mono text-zinc-700">
+                #{order.order_id || order.id}
+              </span>
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
           >
-            <FaTimes className="text-gray-500 text-xl" />
+            <X className="w-5 h-5 text-zinc-400 hover:text-zinc-700" />
           </button>
         </div>
 
-        {/* Modal Content */}
-        <div className="p-6 space-y-6">
-          {/* Order Status Badges */}
-          <div className="flex flex-wrap gap-4">
-            <div
-              className={`px-4 py-2 ${statusConfig.color} rounded-full font-semibold flex items-center gap-2`}
-            >
-              {statusConfig.icon}
-              {statusConfig.label}
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
+          {/* Status Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50 p-4 rounded-xl border border-zinc-100">
+            <div className="flex flex-col">
+              <span className="text-[10px] sm:text-xs text-zinc-500 uppercase tracking-wider font-medium mb-1">
+                Status
+              </span>
+              <div>
+                <StatusBadge status={order.status} />
+              </div>
             </div>
-            <div
-              className={`px-4 py-2 ${paymentConfig.color} rounded-full font-semibold flex items-center gap-2`}
-            >
-              <FaCreditCard />
-              {paymentConfig.label}
+            <div className="flex flex-col sm:items-end border-t sm:border-t-0 border-zinc-200 pt-2 sm:pt-0">
+              <span className="text-[10px] sm:text-xs text-zinc-500 uppercase tracking-wider font-medium mb-1">
+                Date Placed
+              </span>
+              <span className="text-sm font-medium text-zinc-900">
+                {formatDate(order.placedAt || order.createdAt)}
+              </span>
             </div>
           </div>
 
-          {/* Order Timeline */}
-          <div className="bg-gray-50 rounded-xl p-6">
-            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <FaCalendarAlt className="text-teal-600" />
-              Order Timeline
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-                    <FaClock className="text-teal-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Order Placed</p>
-                    <p className="text-sm text-gray-500">
-                      {formatDate(order.placedAt)}
-                    </p>
-                  </div>
-                </div>
-                <div className="w-2 h-2 rounded-full bg-teal-500"></div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                    <FaTruck className="text-gray-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Processing</p>
-                    <p className="text-sm text-gray-500">In progress</p>
-                  </div>
-                </div>
-                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-              </div>
-
-              {order.deliveredAt && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                      <FaCheckCircle className="text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Delivered</p>
-                      <p className="text-sm text-gray-500">
-                        {formatDate(order.deliveredAt)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Shipping Address */}
-          {order.shippingAddress && (
-            <div className="bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl p-6 border border-teal-200">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FaHome className="text-teal-600" />
-                Shipping Address
+          {/* Order Items Section - ENHANCED */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs sm:text-sm font-semibold text-zinc-900 uppercase tracking-wider">
+                Purchased Items ({order.items?.length || 0})
               </h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <FaUser className="text-teal-600 mt-1" />
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {order.shippingAddress.fullName}
-                    </p>
+              <span className="text-xs text-zinc-500">
+                Total Items: {order.items?.length || 0}
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              {order.items?.map((item, index) => {
+                const productInfo = getProductDisplayInfo(item);
+
+                return (
+                  <div
+                    key={item.id || index}
+                    className="bg-white border border-zinc-200 rounded-xl p-4 hover:border-emerald-200 transition-colors"
+                  >
+                    <div className="flex gap-4">
+                      {/* Product Image - Larger in modal */}
+                      <div className="flex-shrink-0">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 flex items-center justify-center">
+                          {productInfo.imageUrl ? (
+                            <img
+                              src={productInfo.imageUrl}
+                              alt={productInfo.altText}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                                e.target.parentElement.innerHTML = `
+                                  <div class="w-full h-full flex flex-col items-center justify-center bg-zinc-100 p-2">
+                                    <svg class="w-8 h-8 text-zinc-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span class="text-[10px] text-zinc-500 text-center">No Image</span>
+                                  </div>
+                                `;
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-100 p-2">
+                              <ImageIcon className="w-8 h-8 text-zinc-400 mb-1" />
+                              <span className="text-[10px] text-zinc-500 text-center">
+                                No Image
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Product Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-3 mb-2">
+                          <div className="flex-1 min-w-0">
+                            {/* Product Name - Prominent */}
+                            <h4 className="font-semibold text-zinc-900 text-sm sm:text-base truncate mb-2">
+                              {productInfo.productName}
+                            </h4>
+
+                            {/* Product Variant Details */}
+                            <div className="flex flex-wrap gap-3 mb-3">
+                              {/* Color */}
+                              {productInfo.colorCode && (
+                                <div className="flex items-center gap-1.5">
+                                  <div className="flex items-center gap-1">
+                                    <div
+                                      className="w-4 h-4 rounded-full border border-zinc-300"
+                                      style={{
+                                        backgroundColor: productInfo.colorCode,
+                                      }}
+                                      title={productInfo.colorName}
+                                    />
+                                  </div>
+                                  {productInfo.colorName && (
+                                    <span className="text-xs text-zinc-600">
+                                      {productInfo.colorName}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Size */}
+                              {productInfo.size && (
+                                <div className="flex items-center gap-1.5">
+                                  <Tag className="w-3 h-3 text-zinc-400" />
+                                  <span className="text-xs text-zinc-600">
+                                    Size: {productInfo.size}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Quantity */}
+                              <div className="flex items-center gap-1.5">
+                                <Hash className="w-3 h-3 text-zinc-400" />
+                                <span className="text-xs font-medium text-zinc-700">
+                                  Quantity: {productInfo.quantity}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* SKU */}
+                            {productInfo.sku && (
+                              <div className="mt-2">
+                                <span className="text-[10px] font-mono text-zinc-500 bg-zinc-100 px-2 py-1 rounded">
+                                  SKU: {productInfo.sku}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Price Section */}
+                          <div className="text-right flex-shrink-0">
+                            <div className="mb-1">
+                              <span className="text-sm sm:text-base font-bold text-emerald-700">
+                                {formatCurrency(productInfo.price)}
+                              </span>
+                              {productInfo.quantity > 1 && (
+                                <p className="text-xs text-zinc-500 mt-1">
+                                  {productInfo.quantity} ×{" "}
+                                  {formatCurrency(
+                                    productInfo.price / productInfo.quantity
+                                  )}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Item Total */}
+                        <div className="flex justify-between items-center pt-3 border-t border-zinc-100">
+                          <div className="text-sm text-zinc-600">
+                            Item {index + 1} of {order.items?.length}
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs text-zinc-500">
+                              Item Total:
+                            </span>
+                            <p className="text-sm sm:text-base font-bold text-zinc-900">
+                              {formatCurrency(productInfo.total)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <FaPhone className="text-teal-600" />
-                  <p className="text-gray-700">{order.shippingAddress.phone}</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <FaLocationArrow className="text-teal-600 mt-1" />
-                  <div>
-                    <p className="text-gray-700">
-                      {order.shippingAddress.addressLine1}
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Shipping and Payment Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+            {/* Shipping Info */}
+            {order.shippingAddress && (
+              <div>
+                <h3 className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-zinc-900 uppercase tracking-wider mb-3">
+                  <MapPin className="w-4 h-4 text-emerald-600" /> Shipping To
+                </h3>
+                <div className="bg-zinc-50 p-3 sm:p-4 rounded-xl border border-zinc-100 text-sm text-zinc-600 space-y-1">
+                  <p className="font-medium text-zinc-900 text-sm sm:text-base">
+                    {order.shippingAddress.fullName}
+                  </p>
+                  <p className="text-xs sm:text-sm">
+                    {order.shippingAddress.addressLine1}
+                  </p>
+                  {order.shippingAddress.addressLine2 && (
+                    <p className="text-xs sm:text-sm">
+                      {order.shippingAddress.addressLine2}
                     </p>
-                    {order.shippingAddress.addressLine2 && (
-                      <p className="text-gray-700">
-                        {order.shippingAddress.addressLine2}
-                      </p>
-                    )}
-                    <p className="text-gray-700">
-                      {order.shippingAddress.city},{" "}
-                      {order.shippingAddress.state}{" "}
-                      {order.shippingAddress.zipCode}
-                    </p>
-                    <p className="text-gray-700">
-                      {order.shippingAddress.country}
-                    </p>
-                    {order.shippingAddress.isDefault && (
-                      <span className="inline-block mt-2 px-2 py-1 bg-teal-100 text-teal-800 text-xs rounded">
-                        Default Address
-                      </span>
-                    )}
-                  </div>
+                  )}
+                  <p className="text-xs sm:text-sm">
+                    {order.shippingAddress.city}, {order.shippingAddress.state}
+                  </p>
+                  <p className="text-xs sm:text-sm">
+                    {order.shippingAddress.zipCode},{" "}
+                    {order.shippingAddress.country}
+                  </p>
+                  <p className="pt-2 mt-2 border-t border-zinc-200 flex items-center gap-2 text-xs sm:text-sm">
+                    <Phone className="w-3 h-3" /> {order.shippingAddress.phone}
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Order Summary */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <FaReceipt className="text-teal-600" />
+            {/* Payment Info */}
+            <div>
+              <h3 className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-zinc-900 uppercase tracking-wider mb-3">
+                <CreditCard className="w-4 h-4 text-emerald-600" /> Payment
+              </h3>
+              <div className="bg-zinc-50 p-3 sm:p-4 rounded-xl border border-zinc-100 text-sm text-zinc-600 space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-xs sm:text-sm">Method</span>
+                  <span className="font-medium text-zinc-900 text-xs sm:text-sm">
+                    {order.paymentMethod}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-xs sm:text-sm">Status</span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium ${
+                      order.paymentStatus === "PAID"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {order.paymentStatus}
+                  </span>
+                </div>
+                {order.paymentId && (
+                  <div className="flex justify-between">
+                    <span className="text-xs sm:text-sm">Payment ID</span>
+                    <span className="font-mono text-[10px] text-zinc-500 truncate max-w-[120px]">
+                      {order.paymentId.slice(-8)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Financial Summary */}
+          <div>
+            <h3 className="text-xs sm:text-sm font-semibold text-zinc-900 uppercase tracking-wider mb-3">
               Order Summary
             </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="font-medium">
-                  {formatCurrency(order.totalAmount)}
+            <div className="border border-zinc-200 rounded-xl overflow-hidden">
+              <div className="p-3 sm:p-4 space-y-2 bg-white">
+                {/* Items Subtotal */}
+                <div className="flex justify-between text-xs sm:text-sm text-zinc-600">
+                  <span>Items ({order.items?.length || 0})</span>
+                  <span>{formatCurrency(order.totalAmount)}</span>
+                </div>
+
+                {/* Shipping */}
+                <div className="flex justify-between text-xs sm:text-sm text-zinc-600">
+                  <span>Shipping</span>
+                  <span>{formatCurrency(order.shippingCost)}</span>
+                </div>
+
+                {/* Tax */}
+                {order.tax > 0 && (
+                  <div className="flex justify-between text-xs sm:text-sm text-zinc-600">
+                    <span>Tax</span>
+                    <span>{formatCurrency(order.tax)}</span>
+                  </div>
+                )}
+
+                {/* Discount */}
+                {order.discount > 0 && (
+                  <div className="flex justify-between text-xs sm:text-sm text-emerald-600">
+                    <span>Discount</span>
+                    <span>-{formatCurrency(order.discount)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Grand Total */}
+              <div className="bg-zinc-50 p-3 sm:p-4 border-t border-zinc-200 flex justify-between items-center">
+                <span className="font-bold text-zinc-900 text-sm sm:text-base">
+                  Grand Total
+                </span>
+                <span className="font-bold text-lg sm:text-xl text-emerald-700">
+                  {formatCurrency(order.grandTotal)}
                 </span>
               </div>
-              {order.discount > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 flex items-center gap-2">
-                    <FaTag className="text-green-600" />
-                    Discount
-                  </span>
-                  <span className="font-medium text-green-600">
-                    -{formatCurrency(order.discount)}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tax</span>
-                <span className="font-medium">{formatCurrency(order.tax)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shipping Cost</span>
-                <span className="font-medium">
-                  {formatCurrency(order.shippingCost)}
-                </span>
-              </div>
-              <div className="border-t border-gray-200 pt-3">
-                <div className="flex justify-between">
-                  <span className="text-lg font-bold text-gray-900">
-                    Grand Total
-                  </span>
-                  <span className="text-2xl font-bold text-teal-700">
-                    {formatCurrency(order.grandTotal)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment & Shipping Info */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h4 className="font-semibold text-gray-900 mb-3">
-                Payment Information
-              </h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Method</span>
-                  <span className="font-medium">{order.paymentMethod}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status</span>
-                  <span
-                    className={`px-2 py-1 ${paymentConfig.color} rounded text-xs font-medium`}
-                  >
-                    {paymentConfig.label}
-                  </span>
-                </div>
-              </div>
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h4 className="font-semibold text-gray-900 mb-3">
-                Shipping Information
-              </h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Method</span>
-                  <span className="font-medium">{order.shippingMethod}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping Cost</span>
-                  <span className="font-medium">
-                    {formatCurrency(order.shippingCost)}
-                  </span>
-                </div>
+            {/* Payment Note */}
+            {order.paymentStatus === "PAID" && (
+              <div className="mt-3 p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
+                <p className="text-xs text-emerald-700 flex items-center gap-1.5">
+                  <CheckCircle className="w-3 h-3" />
+                  Payment completed on {formatDate(order.updatedAt)}
+                </p>
               </div>
-            </div>
-          </div>
-
-          {/* Dates */}
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Order Created</p>
-              <p className="font-medium">{formatDate(order.createdAt)}</p>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Last Updated</p>
-              <p className="font-medium">{formatDate(order.updatedAt)}</p>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">Order ID</p>
-              <p className="font-medium text-sm break-all">{order.id}</p>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end gap-3 rounded-b-2xl">
+        {/* Footer */}
+        <div className="p-4 border-t border-zinc-100 bg-white flex flex-col sm:flex-row justify-end gap-3 safe-area-bottom">
           <button
             onClick={onClose}
-            className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-300 font-medium"
+            className="w-full sm:w-auto px-4 py-3 sm:py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 rounded-lg transition-colors border sm:border-transparent border-zinc-200 order-2 sm:order-1"
           >
             Close
           </button>
           <button
-            onClick={() => {
-              alert("Invoice download functionality would go here");
-            }}
-            className="px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-xl hover:from-teal-700 hover:to-teal-800 transition-all duration-300 font-medium"
+            onClick={() => alert("Invoice download functionality")}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 sm:py-2 text-sm font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-all shadow-lg shadow-zinc-200 order-1 sm:order-2"
           >
-            Download Invoice
+            <Download className="w-4 h-4" /> Download Invoice
           </button>
         </div>
       </div>
@@ -393,29 +556,36 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
   );
 };
 
-// Main User Profile Component
+// --- MAIN PROFILE COMPONENT ---
 const UserProfile = () => {
   const user = useAppSelector(selectUser);
-  const userId = 1;
-  const apiUrl = `http://localhost:8020/api/orders/users/${user.user_id}/orders`;
-  const updateUrl = `http://localhost:8020/api/auth/${user.id}`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL_DUMMY}/api/orders/users/${user?.user_id}/orders`;
+  const updateUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL_DUMMY}/api/auth/${user?.id}`;
 
-  // Get user from Redux store
-  console.log("User from Redux:", user);
-
-  // Profile state
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [updateError, setUpdateError] = useState(null);
 
-  // React Hook Form
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+    total: 0,
+  });
+
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const {
     register,
     handleSubmit,
     formState: { errors, isDirty, isValid },
     reset,
-    watch,
   } = useForm({
     mode: "onChange",
     defaultValues: useMemo(
@@ -428,26 +598,6 @@ const UserProfile = () => {
     ),
   });
 
-  // Watch form values to detect changes
-  const formValues = watch();
-
-  // Orders state
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    totalPages: 1,
-    hasNextPage: false,
-    hasPrevPage: false,
-    total: 0,
-  });
-
-  // Modal state
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Initialize form with user data
   useEffect(() => {
     if (user) {
       reset({
@@ -458,17 +608,18 @@ const UserProfile = () => {
     }
   }, [user, reset]);
 
-  // Fetch orders from API
   const fetchOrders = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiUrl}?page=${page}&limit=10`);
+      if (!user?.user_id) {
+        setLoading(false);
+        return;
+      }
+      const response = await fetch(`${apiUrl}?page=${page}&limit=5`);
       if (!response.ok) {
         throw new Error("Failed to fetch orders");
       }
-
       const data = await response.json();
-
       if (data.status === "success") {
         setOrders(data.data.data);
         setPagination({
@@ -491,9 +642,8 @@ const UserProfile = () => {
 
   useEffect(() => {
     fetchOrders(1);
-  }, []);
+  }, [user]);
 
-  // Update profile API call
   const updateProfile = async (data) => {
     setIsSubmitting(true);
     setUpdateSuccess(false);
@@ -502,9 +652,7 @@ const UserProfile = () => {
     try {
       const response = await fetch(updateUrl, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: data.name,
           phone: data.phone,
@@ -522,136 +670,15 @@ const UserProfile = () => {
       if (result.status === "success") {
         setUpdateSuccess(true);
         setIsEditing(false);
-        // Here you might want to update the Redux store with new user data
-        // dispatch(updateUserProfile(result.data));
-
-        // Hide success message after 3 seconds
-        setTimeout(() => {
-          setUpdateSuccess(false);
-        }, 3000);
+        setTimeout(() => setUpdateSuccess(false), 3000);
       } else {
         throw new Error(result.message || "Failed to update profile");
       }
     } catch (err) {
       setUpdateError(err.message);
-      console.error("Error updating profile:", err);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Status configuration
-  const getStatusConfig = (status) => {
-    const configs = {
-      PENDING: {
-        color: "bg-yellow-100 text-yellow-800",
-        borderColor: "border-yellow-500",
-        icon: <FaClock className="text-sm" />,
-        label: "Pending",
-      },
-      PROCESSING: {
-        color: "bg-blue-100 text-blue-800",
-        borderColor: "border-blue-500",
-        icon: <FaTruck className="text-sm" />,
-        label: "Processing",
-      },
-      SHIPPED: {
-        color: "bg-purple-100 text-purple-800",
-        borderColor: "border-purple-500",
-        icon: <FaShippingFast className="text-sm" />,
-        label: "Shipped",
-      },
-      DELIVERED: {
-        color: "bg-green-100 text-green-800",
-        borderColor: "border-green-500",
-        icon: <FaCheckCircle className="text-sm" />,
-        label: "Delivered",
-      },
-      CANCELLED: {
-        color: "bg-red-100 text-red-800",
-        borderColor: "border-red-500",
-        icon: <FaExclamationTriangle className="text-sm" />,
-        label: "Cancelled",
-      },
-    };
-
-    return (
-      configs[status] || {
-        color: "bg-gray-100 text-gray-800",
-        borderColor: "border-gray-500",
-        icon: <FaInfoCircle className="text-sm" />,
-        label: status,
-      }
-    );
-  };
-
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  // Format date to readable format
-  const formatShortDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  // Calculate stats from orders
-  const calculateStats = () => {
-    const deliveredCount = orders.filter(
-      (order) => order.status === "DELIVERED"
-    ).length;
-    const pendingCount = orders.filter(
-      (order) => order.status === "PENDING"
-    ).length;
-    const totalSpent = orders
-      .filter((order) => order.status === "DELIVERED")
-      .reduce((sum, order) => sum + order.grandTotal, 0);
-
-    return [
-      {
-        label: "Total Orders",
-        value: pagination.total.toString(),
-        icon: <FaShoppingBag className="text-teal-600" />,
-        color: "from-teal-50 to-teal-100",
-      },
-      {
-        label: "Pending",
-        value: pendingCount.toString(),
-        icon: <FaClock className="text-yellow-600" />,
-        color: "from-yellow-50 to-yellow-100",
-      },
-      {
-        label: "Delivered",
-        value: deliveredCount.toString(),
-        icon: <FaBox className="text-green-600" />,
-        color: "from-green-50 to-green-100",
-      },
-      {
-        label: "Total Spent",
-        value: formatCurrency(totalSpent),
-        icon: <FaRupeeSign className="text-teal-600" />,
-        color: "from-blue-50 to-blue-100",
-      },
-    ];
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    reset();
-    setIsEditing(false);
-    setUpdateError(null);
   };
 
   const handlePageChange = (newPage) => {
@@ -660,470 +687,443 @@ const UserProfile = () => {
     }
   };
 
-  const handleViewOrderDetails = (order) => {
-    setSelectedOrder(order);
-    setIsModalOpen(true);
+  const calculateStats = () => {
+    const totalSpent = orders
+      .filter((order) => order.status === "DELIVERED")
+      .reduce((sum, order) => sum + order.grandTotal, 0);
+
+    const activeOrders = orders.filter(
+      (o) => o.status !== "DELIVERED" && o.status !== "CANCELLED"
+    ).length;
+
+    return [
+      {
+        label: "Total Orders",
+        value: pagination.total.toString(),
+        icon: ShoppingBag,
+        color: "text-blue-600",
+        bg: "bg-blue-50",
+      },
+      {
+        label: "Pending",
+        value: activeOrders.toString(),
+        icon: Clock,
+        color: "text-amber-600",
+        bg: "bg-amber-50",
+      },
+      {
+        label: "Total Spent",
+        value: `₹${totalSpent.toLocaleString()}`,
+        icon: TrendingUp,
+        color: "text-emerald-600",
+        bg: "bg-emerald-50",
+      },
+    ];
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-3 sm:p-4 md:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Success Message */}
-        {updateSuccess && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg sm:rounded-xl">
-            <div className="flex items-start sm:items-center gap-2 sm:gap-3">
-              <FaCheckCircle className="text-green-600 text-lg sm:text-xl flex-shrink-0 mt-0.5 sm:mt-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-green-800 text-sm sm:text-base">
-                  Profile updated successfully!
-                </p>
-                <p className="text-xs sm:text-sm text-green-600 mt-0.5">
-                  Your changes have been saved.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+    <div className="min-h-screen bg-zinc-50/50 pb-20">
+      {/* --- HERO SECTION: Responsive Text & Padding --- */}
+      <div className="relative bg-white border-b border-zinc-200 pt-20 pb-8 lg:pt-10 lg:pb-16 overflow-hidden">
+        {/* Abstract Background Pattern */}
+        <div className="absolute inset-0 opacity-40 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-emerald-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bg-indigo-50/50 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3"></div>
+        </div>
 
-        {/* Error Message */}
-        {updateError && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg sm:rounded-xl">
-            <div className="flex items-start sm:items-center gap-2 sm:gap-3">
-              <FaExclamationTriangle className="text-red-600 text-lg sm:text-xl flex-shrink-0 mt-0.5 sm:mt-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-red-800 text-sm sm:text-base">
-                  Update failed
-                </p>
-                <p className="text-xs sm:text-sm text-red-600 mt-0.5 break-words">
-                  {updateError}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* PROFILE SECTION - IMPROVED MOBILE RESPONSIVE */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden mb-6 sm:mb-8">
-          {/* Cover with teal gradient - Reduced height on mobile */}
-          <div className="h-20 sm:h-24 md:h-32 bg-gradient-to-r from-teal-600 to-teal-800 relative">
-            <div className="absolute inset-0 bg-black opacity-5"></div>
-          </div>
-
-          {/* Profile Content */}
-          <div className="relative px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6">
-            {/* Avatar and Basic Info Section */}
-            <div className="flex flex-col sm:flex-row sm:items-end -mt-10 sm:-mt-12 gap-3 sm:gap-4">
-              {/* Avatar - Smaller on mobile */}
-              <div className="relative flex-shrink-0 mx-auto sm:mx-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white shadow-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
-                  <span className="text-white text-xl sm:text-2xl font-bold">
-                    {user?.name
-                      ?.split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase() || "JD"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Profile Info and Edit Button */}
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  {/* User Details */}
-                  <div className="flex-1 min-w-0">
-                    {!isEditing ? (
-                      <div className="space-y-2 text-center sm:text-left">
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
-                          {user?.name || "John Doe"}
-                        </h1>
-
-                        {/* Contact Details - Stack on mobile */}
-                        <div className="space-y-1.5 sm:space-y-1">
-                          <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-600">
-                            <FaEnvelope className="text-xs sm:text-sm flex-shrink-0" />
-                            <span className="text-xs sm:text-sm truncate max-w-full">
-                              {user?.email || "john.doe@example.com"}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-500">
-                            <FaPhone className="text-teal-600 text-xs sm:text-sm flex-shrink-0" />
-                            <span className="text-xs sm:text-sm">
-                              {user?.phone || "9876543210"}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-500">
-                            <FaMapMarkerAlt className="text-teal-600 text-xs sm:text-sm flex-shrink-0" />
-                            <span className="text-xs sm:text-sm line-clamp-1">
-                              {user?.location || "Mumbai, Maharashtra, India"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // EDIT MODE - Improved Mobile Form
-                      <form
-                        onSubmit={handleSubmit(updateProfile)}
-                        className="space-y-3 sm:space-y-4 w-full"
-                      >
-                        {/* Form Fields */}
-                        <div className="space-y-3 sm:space-y-4">
-                          {/* Name Field */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                              Name *
-                            </label>
-                            <input
-                              type="text"
-                              {...register("name", {
-                                required: "Name is required",
-                                minLength: {
-                                  value: 2,
-                                  message: "Name must be at least 2 characters",
-                                },
-                              })}
-                              className={`w-full px-3 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
-                                errors.name
-                                  ? "border-red-300"
-                                  : "border-gray-300"
-                              }`}
-                              placeholder="Enter your name"
-                            />
-                            {errors.name && (
-                              <p className="mt-1 text-xs sm:text-sm text-red-600">
-                                {errors.name.message}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Email Field (Read-only) */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                              Email
-                            </label>
-                            <input
-                              type="email"
-                              value={user?.email || "john.doe@example.com"}
-                              readOnly
-                              disabled
-                              className="w-full px-3 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                            />
-                            <p className="mt-1 text-xs text-gray-500">
-                              Email cannot be changed
-                            </p>
-                          </div>
-
-                          {/* Phone Field */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                              Phone Number *
-                            </label>
-                            <input
-                              type="tel"
-                              {...register("phone", {
-                                required: "Phone number is required",
-                                pattern: {
-                                  value: /^[0-9]{10}$/,
-                                  message:
-                                    "Please enter a valid 10-digit phone number",
-                                },
-                              })}
-                              className={`w-full px-3 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
-                                errors.phone
-                                  ? "border-red-300"
-                                  : "border-gray-300"
-                              }`}
-                              placeholder="Enter your phone number"
-                            />
-                            {errors.phone && (
-                              <p className="mt-1 text-xs sm:text-sm text-red-600">
-                                {errors.phone.message}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Location Field */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                              Location *
-                            </label>
-                            <input
-                              type="text"
-                              {...register("location", {
-                                required: "Location is required",
-                              })}
-                              className={`w-full px-3 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
-                                errors.location
-                                  ? "border-red-300"
-                                  : "border-gray-300"
-                              }`}
-                              placeholder="Enter your location"
-                            />
-                            {errors.location && (
-                              <p className="mt-1 text-xs sm:text-sm text-red-600">
-                                {errors.location.message}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Action Buttons - Full width on mobile */}
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
-                          <button
-                            type="button"
-                            onClick={handleCancel}
-                            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={!isDirty || !isValid || isSubmitting}
-                            className={`w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-all text-sm ${
-                              isDirty && isValid && !isSubmitting
-                                ? "bg-gradient-to-r from-teal-600 to-teal-700 text-white hover:from-teal-700 hover:to-teal-800 shadow-md hover:shadow-lg"
-                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                            }`}
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <FaSpinner className="animate-spin" />
-                                <span>Saving...</span>
-                              </>
-                            ) : (
-                              <>
-                                <FaSave />
-                                <span>Save Changes</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
-
-                  {/* Edit Button - Full width on mobile when not editing */}
-                  {!isEditing && (
-                    <button
-                      onClick={handleEditClick}
-                      className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 transition-all duration-300 shadow-md hover:shadow-lg font-medium flex items-center justify-center gap-2 text-sm flex-shrink-0"
-                    >
-                      <FaEdit />
-                      <span>Edit Profile</span>
-                    </button>
-                  )}
-                </div>
-              </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif text-zinc-900 mb-2">
+                Welcome back,{" "}
+                <span className="text-emerald-800">
+                  {user?.name?.split(" ")[0] || "User"}
+                </span>
+              </h1>
+              <p className="text-sm sm:text-base text-zinc-500 max-w-lg leading-relaxed">
+                Manage your profile details, track your orders, and view your
+                purchase history all in one place.
+              </p>
             </div>
 
-            {/* Stats Section - Optimized for mobile */}
-            <div className="mt-4 sm:mt-5 md:mt-6 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-              {calculateStats().map((stat, index) => (
+            {/* Stats Row: Scrollable on mobile, Grid on desktop */}
+            <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide snap-x">
+              {calculateStats().map((stat, i) => (
                 <div
-                  key={index}
-                  className={`bg-gradient-to-br ${stat.color} p-3 sm:p-4 rounded-lg sm:rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow`}
+                  key={i}
+                  className="flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-zinc-200 px-4 py-3 rounded-2xl shadow-sm min-w-[150px] snap-center"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">
-                        {stat.value}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 truncate">
-                        {stat.label}
-                      </p>
-                    </div>
-                    <div className="text-lg sm:text-xl flex-shrink-0 self-end sm:self-auto">
-                      {stat.icon}
-                    </div>
+                  <div className={`p-2 rounded-xl ${stat.bg} flex-shrink-0`}>
+                    <stat.icon
+                      className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] sm:text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                      {stat.label}
+                    </p>
+                    <p className="text-base sm:text-lg font-bold text-zinc-900">
+                      {stat.value}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ORDERS SECTION - Mobile Optimized */}
-        <div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
-              <FaShoppingBag className="text-teal-600 flex-shrink-0" />
-              <span className="truncate">Recent Orders</span>
-              <span className="text-xs sm:text-sm font-normal text-gray-500 whitespace-nowrap">
-                ({pagination.total})
-              </span>
-            </h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+          {/* --- LEFT COLUMN: PROFILE --- */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Sticky only on Desktop */}
+            <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden lg:sticky lg:top-24">
+              {/* Profile Header */}
+              <div className="h-24 sm:h-32 bg-gradient-to-r from-zinc-800 to-zinc-900 relative">
+                <button
+                  onClick={() => {
+                    setIsEditing(!isEditing);
+                    setUpdateError(null);
+                    if (!isEditing) reset();
+                  }}
+                  className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/10 backdrop-blur-md text-white p-2 rounded-lg hover:bg-white/20 transition-colors z-10"
+                >
+                  {isEditing ? (
+                    <X className="w-4 h-4" />
+                  ) : (
+                    <Edit2 className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
 
-            {/* Pagination - Compact on mobile */}
-            {orders.length > 0 && (
-              <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+              <div className="px-5 pb-5 sm:px-6 sm:pb-6 relative">
+                <div className="-mt-10 sm:-mt-12 mb-4">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-4 border-white bg-zinc-100 flex items-center justify-center shadow-md">
+                    <span className="text-2xl sm:text-3xl font-serif text-zinc-400">
+                      {user?.name?.charAt(0) || "U"}
+                    </span>
+                  </div>
+                </div>
+
+                {updateSuccess && (
+                  <div className="mb-4 p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs sm:text-sm rounded-xl flex items-center gap-2 animate-in fade-in">
+                    <CheckCircle className="w-4 h-4" /> Profile Updated!
+                  </div>
+                )}
+
+                {updateError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 text-xs sm:text-sm rounded-xl flex items-center gap-2 animate-in fade-in">
+                    <AlertCircle className="w-4 h-4" /> {updateError}
+                  </div>
+                )}
+
+                {!isEditing ? (
+                  <div className="space-y-4 animate-in fade-in">
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-bold text-zinc-900">
+                        {user?.name || "Guest User"}
+                      </h2>
+                      <p className="text-xs sm:text-sm text-zinc-500">Member</p>
+                    </div>
+
+                    <div className="space-y-3 pt-4 border-t border-zinc-100">
+                      <div className="flex items-center gap-3 text-zinc-600">
+                        <Mail className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                        <span className="text-xs sm:text-sm break-all">
+                          {user?.email || "No email"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-zinc-600">
+                        <Phone className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                        <span className="text-xs sm:text-sm">
+                          {user?.phone || "No phone"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-zinc-600">
+                        <MapPin className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                        <span className="text-xs sm:text-sm">
+                          {user?.location || "No location"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Edit Form */
+                  <form
+                    onSubmit={handleSubmit(updateProfile)}
+                    className="space-y-4 animate-in fade-in slide-in-from-top-2"
+                  >
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-500 mb-1">
+                        Full Name
+                      </label>
+                      <input
+                        {...register("name", {
+                          required: "Name is required",
+                          minLength: { value: 2, message: "Min 2 chars" },
+                        })}
+                        className={`w-full px-3 py-2.5 sm:py-2 rounded-lg border ${
+                          errors.name ? "border-red-300" : "border-zinc-200"
+                        } focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm`}
+                      />
+                      {errors.name && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.name.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Email Read-only */}
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-500 mb-1">
+                        Email
+                      </label>
+                      <input
+                        value={user?.email || ""}
+                        disabled
+                        className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-zinc-100 bg-zinc-50 text-zinc-400 text-sm cursor-not-allowed"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-500 mb-1">
+                        Phone
+                      </label>
+                      <input
+                        {...register("phone", {
+                          required: "Phone is required",
+                          pattern: {
+                            value: /^[0-9]{10}$/,
+                            message: "Valid 10-digit phone",
+                          },
+                        })}
+                        className={`w-full px-3 py-2.5 sm:py-2 rounded-lg border ${
+                          errors.phone ? "border-red-300" : "border-zinc-200"
+                        } focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm`}
+                      />
+                      {errors.phone && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.phone.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-500 mb-1">
+                        Location
+                      </label>
+                      <input
+                        {...register("location", {
+                          required: "Location is required",
+                        })}
+                        className={`w-full px-3 py-2.5 sm:py-2 rounded-lg border ${
+                          errors.location ? "border-red-300" : "border-zinc-200"
+                        } focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm`}
+                      />
+                      {errors.location && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.location.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 flex flex-col sm:flex-row gap-3 sm:gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="w-full sm:flex-1 bg-white border border-zinc-200 text-zinc-600 py-2.5 sm:py-2 rounded-lg font-medium text-sm hover:bg-zinc-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        disabled={!isDirty || !isValid || isSubmitting}
+                        type="submit"
+                        className="w-full sm:flex-1 bg-emerald-600 text-white py-2.5 sm:py-2 rounded-lg font-medium text-sm hover:bg-emerald-700 transition-colors flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" /> Save
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* --- RIGHT COLUMN: ORDERS --- */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Filter / Search Bar */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
+              <h2 className="text-base sm:text-lg font-bold text-zinc-900 flex items-center gap-2 w-full sm:w-auto">
+                Recent Orders{" "}
+                <span className="bg-zinc-100 text-zinc-600 text-xs px-2 py-1 rounded-full">
+                  {pagination.total}
+                </span>
+              </h2>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                 <button
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={!pagination.hasPrevPage}
-                  className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                    pagination.hasPrevPage
-                      ? "bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
+                  className="p-2 bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  ← Prev
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-xs sm:text-sm text-gray-600 px-2 whitespace-nowrap">
-                  Page {pagination.page} of {pagination.totalPages}
+                <span className="text-xs sm:text-sm text-zinc-500 font-medium px-2">
+                  Page {pagination.page} / {pagination.totalPages}
                 </span>
                 <button
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={!pagination.hasNextPage}
-                  className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                    pagination.hasNextPage
-                      ? "bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
+                  className="p-2 bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next →
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-            )}
-          </div>
-
-          {/* Loading State */}
-          {loading && (
-            <div className="flex justify-center items-center py-8 sm:py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-600"></div>
             </div>
-          )}
 
-          {/* Error State */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg sm:rounded-xl p-4 text-center">
-              <FaExclamationTriangle className="text-red-500 text-xl sm:text-2xl mx-auto mb-2" />
-              <p className="text-red-700 font-medium text-sm sm:text-base">
-                Error loading orders
-              </p>
-              <p className="text-red-600 text-xs sm:text-sm mt-1 break-words px-2">
-                {error}
-              </p>
-            </div>
-          )}
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+              </div>
+            ) : error ? (
+              <div className="text-center py-20 bg-red-50 rounded-2xl border border-red-100 px-4">
+                <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-red-300 mx-auto mb-4" />
+                <h3 className="text-red-900 font-medium text-sm sm:text-base">
+                  Failed to load orders
+                </h3>
+                <p className="text-red-500 text-xs sm:text-sm mt-1 mb-4">
+                  {error}
+                </p>
+                <button
+                  onClick={() => fetchOrders(1)}
+                  className="text-red-700 text-sm font-semibold hover:underline bg-white px-4 py-2 rounded-lg border border-red-200"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-2xl border border-zinc-200 border-dashed px-4">
+                <Package className="w-10 h-10 sm:w-12 sm:h-12 text-zinc-300 mx-auto mb-4" />
+                <h3 className="text-zinc-900 font-medium">No orders yet</h3>
+                <p className="text-zinc-500 text-xs sm:text-sm mt-1">
+                  Start shopping to see your history here.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="group bg-white rounded-2xl border border-zinc-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 overflow-hidden"
+                  >
+                    {/* Order Card Container: Col on mobile, Row on Desktop */}
+                    <div className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6">
+                      {/* Order Icon/Date Section */}
+                      <div className="flex flex-row sm:flex-col items-center sm:items-start gap-3 sm:gap-1 sm:w-32 flex-shrink-0">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-zinc-50 rounded-xl flex items-center justify-center border border-zinc-100 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                          <ShoppingBag className="w-5 h-5 text-zinc-400 group-hover:text-emerald-600" />
+                        </div>
+                        <div className="sm:mt-2">
+                          <p className="hidden sm:block text-xs text-zinc-400 font-medium uppercase tracking-wide">
+                            Placed On
+                          </p>
+                          <p className="text-xs sm:text-sm font-medium text-zinc-900">
+                            {new Date(
+                              order.placedAt || order.createdAt
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                        {/* Mobile Only Status Badge moved here for space efficiency */}
+                        <div className="sm:hidden ml-auto">
+                          <StatusBadge status={order.status} />
+                        </div>
+                      </div>
 
-          {/* Orders List - Mobile Optimized */}
-          {!loading && !error && (
-            <div className="space-y-3 sm:space-y-4">
-              {orders.length === 0 ? (
-                <div className="bg-white rounded-lg sm:rounded-xl shadow p-6 sm:p-8 text-center">
-                  <FaShoppingBag className="text-gray-300 text-2xl sm:text-3xl mx-auto mb-3" />
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
-                    No orders found
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-500">
-                    You haven't placed any orders yet.
-                  </p>
-                </div>
-              ) : (
-                orders.map((order) => {
-                  const statusConfig = getStatusConfig(order.status);
-
-                  return (
-                    <div
-                      key={order.id}
-                      className="bg-white rounded-lg sm:rounded-xl shadow hover:shadow-md transition-shadow duration-300 overflow-hidden"
-                    >
-                      <div className="p-3 sm:p-4">
-                        {/* Order Header - Stack on mobile */}
-                        <div className="flex flex-col gap-3">
-                          {/* Order ID and Status */}
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold text-sm sm:text-base text-gray-900 truncate flex-1">
-                              Order #{order.order_id}
+                      {/* Order Info */}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-bold text-zinc-900 text-base sm:text-lg group-hover:text-emerald-700 transition-colors">
+                              Order #{order.order_id || order.id}
                             </h3>
-                            <span
-                              className={`px-2 sm:px-3 py-1 ${statusConfig.color} rounded-full text-xs font-medium flex items-center gap-1 flex-shrink-0`}
-                            >
-                              {statusConfig.icon}
-                              <span className="hidden xs:inline">
-                                {statusConfig.label}
+                            <p className="text-xs sm:text-sm text-zinc-500 mt-1 flex items-center gap-2">
+                              {order.items ? order.items.length : 0} Items •{" "}
+                              <span className="font-medium text-zinc-900">
+                                {new Intl.NumberFormat("en-IN", {
+                                  style: "currency",
+                                  currency: "INR",
+                                }).format(order.grandTotal)}
                               </span>
-                            </span>
+                            </p>
                           </div>
-
-                          {/* Order Meta Info - Stack on very small screens */}
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-gray-600">
-                            <div className="flex items-center gap-1">
-                              <FaCalendarAlt className="text-gray-400 flex-shrink-0" />
-                              <span>{formatShortDate(order.placedAt)}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <FaCreditCard className="text-gray-400 flex-shrink-0" />
-                              <span className="truncate">
-                                {order.paymentMethod}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1 text-gray-500">
-                              <FaBox className="text-gray-400 flex-shrink-0" />
-                              <span>
-                                {order.items
-                                  ? `${order.items.length} item${
-                                      order.items.length > 1 ? "s" : ""
-                                    }`
-                                  : "1 item"}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Amount and Button */}
-                          <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100">
-                            <div>
-                              <p className="text-base sm:text-lg font-bold text-teal-700">
-                                {formatCurrency(order.grandTotal)}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => handleViewOrderDetails(order)}
-                              className="px-3 sm:px-4 py-2 bg-gradient-to-r from-teal-50 to-teal-100 text-teal-700 rounded-lg hover:from-teal-100 hover:to-teal-200 active:from-teal-200 active:to-teal-300 transition-all duration-300 font-medium border border-teal-200 text-xs sm:text-sm flex-shrink-0"
-                            >
-                              View Details
-                            </button>
+                          {/* Desktop Status Badge */}
+                          <div className="hidden sm:block">
+                            <StatusBadge status={order.status} />
                           </div>
                         </div>
 
-                        {/* Shipping Address Preview - Compact on mobile */}
-                        {order.shippingAddress && (
-                          <div className="mt-3 pt-3 border-t border-gray-100">
-                            <div className="flex items-start gap-2">
-                              <FaMapMarkerAlt className="text-teal-600 mt-1 flex-shrink-0 text-xs sm:text-sm" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs sm:text-sm text-gray-700">
-                                  <span className="font-medium">
-                                    {order.shippingAddress.fullName}
-                                  </span>{" "}
-                                  •{" "}
-                                  <span className="truncate">
-                                    {order.shippingAddress.addressLine1},{" "}
-                                    {order.shippingAddress.city}
-                                  </span>
-                                </p>
-                                <p className="text-xs text-gray-500 mt-0.5">
-                                  {order.shippingAddress.phone}
-                                </p>
-                              </div>
-                            </div>
+                        {/* Order Items Preview */}
+                        {/* {order.items && order.items.length > 0 && (
+                          <div className="space-y-2 pt-2">
+                            {order.items.slice(0, 2).map((item, index) => (
+                              <OrderItemPreview
+                                key={item.id || index}
+                                item={item}
+                              />
+                            ))}
+                            {order.items.length > 2 && (
+                              <p className="text-xs text-zinc-500 text-center">
+                                +{order.items.length - 2} more items
+                              </p>
+                            )}
                           </div>
-                        )}
+                        )} */}
+
+                        <div className="pt-3 border-t border-zinc-100 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-zinc-500">
+                          <span className="flex items-center gap-1.5">
+                            <CreditCard className="w-3.5 h-3.5" />{" "}
+                            {order.paymentMethod}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Truck className="w-3.5 h-3.5" />{" "}
+                            {order.shippingMethod || "Standard"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <div className="flex items-center justify-end sm:justify-center sm:pl-6 sm:border-l border-zinc-100 mt-2 sm:mt-0">
+                        <button
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setIsModalOpen(true);
+                          }}
+                          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-zinc-200"
+                        >
+                          View Details <ArrowRight className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </div>
-          )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Order Detail Modal */}
       <OrderDetailModal
-        order={selectedOrder}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        order={selectedOrder}
       />
     </div>
   );

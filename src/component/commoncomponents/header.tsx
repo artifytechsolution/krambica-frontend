@@ -13,7 +13,15 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { Search, User, Bell, Heart, ShoppingBag } from "lucide-react";
+import {
+  Search,
+  User,
+  Bell,
+  Heart,
+  ShoppingBag,
+  LogIn,
+  LogOut,
+} from "lucide-react";
 import SearchPopup from "./search";
 import NotificationPopup from "./notifications";
 
@@ -21,12 +29,14 @@ interface HeaderProps {
   cartCount?: number;
   wishlistCount?: number;
   notificationCount?: number;
+  isLoggedIn?: boolean;
 }
 
 export default function Header({
   cartCount = 0,
   wishlistCount = 0,
   notificationCount = 0,
+  isLoggedIn = false,
 }: HeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -47,13 +57,16 @@ export default function Header({
 
   const handleProfile = () => {
     handleAccountClose();
-    window.location.href = "/profile"; // or use router.push("/profile")
+    window.location.href = "/profile";
   };
 
   const handleLogout = () => {
     handleAccountClose();
-    // TODO: call your logout API / clear auth, then redirect
-    // await logout();
+    localStorage.clear();
+    window.location.href = "/login";
+  };
+
+  const handleLogin = () => {
     window.location.href = "/login";
   };
 
@@ -95,7 +108,17 @@ export default function Header({
                   <Search className="w-5 h-5 text-black" strokeWidth={2} />
                 </IconButton>
 
-                {/* ACCOUNT ICON WITH MENU */}
+                {/* Login Icon - Always visible for login */}
+                {/* <IconButton
+                  onClick={handleLogin}
+                  className="hover:bg-gray-100 transition-all"
+                  aria-label="Login"
+                  title="Login"
+                >
+                  <LogIn className="w-5 h-5 text-black" strokeWidth={2} />
+                </IconButton> */}
+
+                {/* Profile Icon with Menu - Always visible */}
                 <IconButton
                   onClick={handleAccountClick}
                   className="hover:bg-gray-100 transition-all"
@@ -107,6 +130,17 @@ export default function Header({
                   <User className="w-5 h-5 text-black" strokeWidth={2} />
                 </IconButton>
 
+                {/* Logout Icon - Always visible for logout */}
+                <IconButton
+                  onClick={handleLogout}
+                  className="hover:bg-gray-100 transition-all"
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5 text-black" strokeWidth={2} />
+                </IconButton>
+
+                {/* Account Menu */}
                 <Menu
                   id="account-menu"
                   anchorEl={accountAnchorEl}
@@ -120,12 +154,32 @@ export default function Header({
                     vertical: "top",
                     horizontal: "right",
                   }}
+                  PaperProps={{
+                    sx: {
+                      mt: 1.5,
+                      minWidth: 180,
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                      borderRadius: "12px",
+                    },
+                  }}
                 >
-                  <MenuItem onClick={handleProfile}>Profile</MenuItem>
-                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                  <MenuItem
+                    onClick={handleProfile}
+                    className="py-2 px-4 hover:bg-gray-50"
+                  >
+                    <User className="w-4 h-4 mr-3 text-gray-600" />
+                    Profile
+                  </MenuItem>
+                  <MenuItem
+                    onClick={handleLogout}
+                    className="py-2 px-4 hover:bg-gray-50"
+                  >
+                    <LogOut className="w-4 h-4 mr-3 text-gray-600" />
+                    Logout
+                  </MenuItem>
                 </Menu>
 
-                <IconButton
+                {/* <IconButton
                   onClick={() => setNotificationOpen(true)}
                   className="hover:bg-gray-100 transition-all"
                   aria-label="Notifications"
@@ -138,7 +192,7 @@ export default function Header({
                   >
                     <Bell className="w-5 h-5 text-black" strokeWidth={2} />
                   </Badge>
-                </IconButton>
+                </IconButton> */}
 
                 <IconButton
                   component={Link}
@@ -206,10 +260,10 @@ export default function Header({
       <SearchPopup open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Notification Popup */}
-      <NotificationPopup
+      {/* <NotificationPopup
         open={notificationOpen}
         onClose={() => setNotificationOpen(false)}
-      />
+      /> */}
     </>
   );
 }

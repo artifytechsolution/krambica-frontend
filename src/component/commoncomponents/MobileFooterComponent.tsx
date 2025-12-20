@@ -18,7 +18,7 @@ export default function MobileBottomNav({
     { label: "Home", value: "/home", Icon: Home },
     { label: "Shop", value: "/shop", Icon: Store },
     { label: "Cart", value: "/cart", Icon: ShoppingCart },
-    { label: "Collections", value: "/collection", Icon: Layers },
+    { label: "Offers", value: "/offer", Icon: Layers },
     { label: "Profile", value: "/profile", Icon: UserCircle },
   ];
 

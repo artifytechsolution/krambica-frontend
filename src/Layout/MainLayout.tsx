@@ -2,34 +2,37 @@
 
 import ReduxProvider from "@src/redux/reduxProvider";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 
 import AuthLayout from "./AuthLayout";
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-        retry: false,
-      },
-    },
-  });
-  const [loading, setLoading] = useState(true);
+
+  // Move QueryClient to useMemo to prevent recreation on every render
+  const queryClient = useMemo(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnWindowFocus: false,
+            retry: false,
+          },
+        },
+      }),
+    []
+  );
+
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setLoading(false);
-  }, [router]);
+    setIsMounted(true);
+  }, []);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-        {/* Spinner */}
-        <div className="w-12 h-12 border-4 border-gray-300 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
-      </div>
-    );
+  // Return null during SSR to match initial server render
+  if (!isMounted) {
+    return null;
   }
 
   return (

@@ -1,309 +1,513 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import {
-  User,
-  ShoppingBag,
-  Package,
-  TrendingUp,
-  Mail,
-  Lock,
-  Phone,
-} from "lucide-react";
-import CustomInput from "@src/component/customeFormField";
 import { useUserSignup } from "@src/hooks/apiHooks";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useDispatch } from "react-redux";
-import { setAuthToken } from "@src/redux/reducers/authSlice";
+import { setAuthToken, setUser } from "@src/redux/reducers/authSlice";
+import {
+  Mail,
+  Lock,
+  User,
+  Phone,
+  ArrowRight,
+  Check,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import CustomInput from "@src/component/customeFormField";
 
-export default function RegisterPage() {
-  const [rememberMe, setRememberMe] = useState(true);
+export default function SignupPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // 1. Setup Form
   const methods = useForm({
     defaultValues: {
       name: "",
       email: "",
-      password: "",
       phone: "",
+      password: "",
+      confirmPassword: "",
+      terms: false, // Mandatory terms checkbox
     },
+    mode: "onBlur",
   });
 
-  const { handleSubmit, reset } = methods;
-  const router = useRouter();
+  const {
+    handleSubmit,
+    reset,
+    formState,
+    setError,
+    register,
+    watch,
+    setValue,
+    clearErrors,
+  } = methods;
+
+  const { errors } = formState;
+
+  // 2. Watch fields for real-time validation & UI state
+  const password = watch("password");
+  const confirmPassword = watch("confirmPassword");
+  const termsAccepted = watch("terms");
+
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const {
     isError: isRegisterError,
     isLoading: isRegisterLoading,
     data: registerData,
     error: registerError,
-    mutate: register,
+    mutate: registerUser,
   } = useUserSignup();
 
-  console.log("isRegisterError:", isRegisterError);
-  console.log("registerError:", registerError);
+  // 3. Handle API Response
   useEffect(() => {
     if (registerData && !isRegisterLoading) {
       dispatch(setAuthToken(registerData.data.token));
-      toast.success(registerData?.message ?? "Registration Successful");
+      dispatch(setUser(registerData?.data?.user));
+      toast.success(registerData?.message ?? "Account created successfully!");
       reset();
-      router.push("/home");
+      router?.push("/login");
     }
-    if (isRegisterError) {
-      toast.error(registerError ?? "Registration Failed");
+    if (isRegisterError && registerError) {
+      setError("root", {
+        type: "server",
+        message: registerError?.message || "Registration failed",
+      });
     }
   }, [
     registerData,
     isRegisterLoading,
-    isRegisterError,
     registerError,
+    isRegisterError,
     reset,
     router,
     dispatch,
+    setError,
   ]);
 
-  const onSubmit = (data) => {
-    console.log("Register Data:", data);
-    register(data);
+  // 4. Submit Handler
+  const onSubmit = async (data) => {
+    clearErrors("root");
+
+    // Final password match check (redundant but safe)
+    if (data.password !== data.confirmPassword) {
+      setError("confirmPassword", {
+        type: "manual",
+        message: "Passwords do not match",
+      });
+      return;
+    }
+
+    try {
+      // Exclude 'confirmPassword' and 'terms' from API payload
+      const { confirmPassword, terms, ...signupPayload } = data;
+      registerUser(signupPayload);
+    } catch (err) {
+      toast.error("Unexpected error.");
+    }
+  };
+
+  const toggleTerms = () => {
+    setValue("terms", !termsAccepted, { shouldValidate: true });
   };
 
   return (
     <FormProvider {...methods}>
-      <div className="min-h-screen flex flex-col lg:flex-row bg-white">
-        {/* Left Section with Illustration */}
-        <div className="w-full lg:w-1/2 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 p-6 sm:p-10 lg:p-16 flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute inset-0 opacity-5">
-            <svg
-              className="w-full h-full"
-              viewBox="0 0 1000 1000"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0,100 Q250,50 500,100 T1000,100 L1000,0 L0,0 Z"
-                fill="currentColor"
-                className="text-gray-400"
-              />
-              <path
-                d="M0,250 Q250,200 500,250 T1000,250 L1000,0 L0,0 Z"
-                fill="currentColor"
-                className="text-gray-300"
-              />
-              <path
-                d="M0,400 Q250,350 500,400 T1000,400 L1000,0 L0,0 Z"
-                fill="currentColor"
-                className="text-gray-200"
-              />
-            </svg>
-          </div>
-          <div className="max-w-xl mx-auto relative z-10">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2 leading-tight">
-              Welcome to <span className="text-rose-600">Mega Dhaka.</span>
-            </h1>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 text-gray-800 leading-tight">
-              The Largest Wholesale
-              <br />
-              Marketplace.
-            </h2>
-            <p className="text-gray-600 text-base sm:text-lg mb-8 leading-relaxed">
-              One-stop wholesale business solution of imported products. We
-              ensure product quality, on time delivery and hassle free service.
+      <style jsx global>{`
+        @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap");
+        .font-serif {
+          font-family: "Playfair Display", serif;
+        }
+        .font-sans {
+          font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #e5e7eb;
+          border-radius: 20px;
+        }
+      `}</style>
+
+      <div className="min-h-screen w-full flex bg-white font-sans selection:bg-emerald-100">
+        {/* --- LEFT SIDE: Editorial Visual (Desktop) --- */}
+        <div className="hidden lg:block lg:w-1/2 xl:w-[55%] relative overflow-hidden bg-stone-100">
+          <img
+            src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1920&auto=format&fit=crop"
+            alt="Krambica Editorial"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-black/10" />
+
+          <div className="absolute bottom-12 left-12 text-white p-8 max-w-lg">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-4 opacity-90">
+              Join the Community
             </p>
-            <div className="flex items-center gap-4 mb-12 flex-wrap">
-              <div className="flex -space-x-2">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-rose-400 to-rose-500 border-3 border-white shadow-md flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-pink-400 to-pink-500 border-3 border-white shadow-md flex items-center justify-center">
-                  <ShoppingBag className="w-5 h-5 text-white" />
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 border-3 border-white shadow-md flex items-center justify-center">
-                  <Package className="w-5 h-5 text-white" />
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-teal-400 to-teal-500 border-3 border-white shadow-md flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <p className="text-gray-700 font-medium text-sm sm:text-base">
-                20k+ buyers joined with us, now it's your turn
-              </p>
-            </div>
+            <h2 className="font-serif text-5xl leading-tight mb-6">
+              "Style is a way to say who you are without having to speak."
+            </h2>
+            <div className="h-px w-20 bg-white/60" />
           </div>
         </div>
 
-        {/* Right Section - Register Form */}
-        <div className="w-full lg:w-1/2 bg-white p-6 sm:p-10 lg:p-16 flex flex-col justify-center">
-          <div className="max-w-md mx-auto w-full">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-8 text-gray-900">
-              Register
-            </h2>
+        {/* --- RIGHT SIDE: Signup Form --- */}
+        <div className="w-full lg:w-1/2 xl:w-[45%] flex flex-col relative bg-white h-full overflow-y-auto custom-scrollbar">
+          {/* Logo */}
+          <div className="absolute top-8 left-8 lg:top-10 lg:left-12 z-20">
+            <span className="font-serif text-2xl font-bold text-emerald-950 tracking-wide cursor-pointer">
+              Krambica.
+            </span>
+          </div>
 
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <CustomInput
-                name="name"
-                label="Full Name"
-                type="text"
-                placeholder="Enter your full name"
-                className="mb-5"
-                icon={<User className="w-5 h-5" />}
-                rules={{ required: "Full name is required" }}
-              />
+          <div className="flex-1 flex flex-col justify-center items-center px-6 sm:px-12 lg:px-20 xl:px-28 py-24">
+            <div className="w-full max-w-[440px] space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              {/* Header */}
+              <div className="space-y-3">
+                <h1 className="font-serif text-4xl lg:text-5xl text-stone-900 leading-tight">
+                  Create Account
+                </h1>
+                <p className="text-stone-500 text-sm lg:text-base font-sans font-light tracking-wide">
+                  Join us for exclusive access and personalized style.
+                </p>
+              </div>
 
-              <CustomInput
-                name="email"
-                label="Email"
-                type="email"
-                placeholder="contact@megadhaka.com"
-                className="mb-5"
-                icon={<Mail className="w-5 h-5" />}
-                rules={{ required: "Email is required" }}
-              />
-
-              <CustomInput
-                name="password"
-                label="Password"
-                type="password"
-                placeholder="Enter your password"
-                className="mb-5"
-                icon={<Lock className="w-5 h-5" />}
-                rules={{
-                  required: "Password is required",
-                  minLength: {
-                    value: 6,
-                    message: "Password must be at least 6 characters",
-                  },
-                }}
-              />
-
-              <CustomInput
-                name="phone"
-                label="Phone Number"
-                type="tel"
-                placeholder="9876543210"
-                className="mb-6"
-                icon={<Phone className="w-5 h-5" />}
-                rules={{
-                  required: "Phone number is required",
-                  pattern: {
-                    value: /^[0-9]{10}$/,
-                    message: "Enter a valid 10-digit number",
-                  },
-                }}
-              />
-
-              <div className="flex items-center justify-between mb-6">
-                <label className="flex items-center cursor-pointer group">
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-5 h-5 text-purple-900 border-2 border-gray-300 rounded focus:ring-2 focus:ring-purple-100 cursor-pointer accent-purple-900 transition-all"
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                {/* Full Name */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-stone-700 uppercase tracking-widest ml-1">
+                    Full Name
+                  </label>
+                  <div className="relative group transition-all duration-300">
+                    <CustomInput
+                      name="name"
+                      type="text"
+                      placeholder="John Doe"
+                      className="w-full h-12 bg-stone-50 border border-transparent focus:border-emerald-900/20 focus:bg-white focus:ring-4 focus:ring-emerald-50/50 rounded-xl px-4 transition-all outline-none placeholder:text-stone-400 text-stone-900 font-medium pl-11"
+                      rules={{ required: "Full name is required" }}
+                    />
+                    <User
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 group-focus-within:text-emerald-800 transition-colors"
+                      strokeWidth={1.8}
                     />
                   </div>
-                  <span className="ml-2.5 text-gray-700 font-medium group-hover:text-gray-900 transition-colors">
-                    Remember me
-                  </span>
-                </label>
-                <a
-                  href="#"
-                  className="text-gray-600 hover:text-purple-900 font-medium transition-colors text-sm"
-                >
-                  Forgot Password?
-                </a>
-              </div>
+                  {errors.name && (
+                    <p className="text-red-600 text-xs mt-1 font-medium ml-1">
+                      {errors.name.message}
+                    </p>
+                  )}
+                </div>
 
-              <button
-                type="submit"
-                disabled={isRegisterLoading}
-                className="w-full bg-gradient-to-r from-rose-500 via-red-500 to-red-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-rose-600 hover:via-red-600 hover:to-red-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isRegisterLoading ? "Registering..." : "Register Here"}
-              </button>
-            </form>
-
-            <p className="text-center text-gray-600 mb-8">
-              Already have an account?{" "}
-              <a
-                href="/login"
-                className="text-rose-600 font-semibold hover:text-rose-700 transition-colors"
-              >
-                Log in
-              </a>
-            </p>
-
-            <div className="relative mb-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500 font-medium">
-                  Register with
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-center gap-4 mb-8">
-              <button
-                type="button"
-                className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
-              >
-                <svg
-                  className="w-7 h-7 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12S0 5.446 0 12.073C0 18.062 4.388 23.027 10.125 23.927V15.542H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953h-1.967c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="w-14 h-14 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 hover:border-gray-400 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
-              >
-                <svg className="w-7 h-7" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92C17.66 15.62 16.88 16.78 15.71 17.56v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77C14.73 18.23 13.48 18.63 12 18.63c-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="text-center">
-              <p className="text-gray-600">
-                Need Help?{" "}
-                <a
-                  href="#"
-                  className="text-blue-600 hover:text-blue-700 font-semibold transition-colors inline-flex items-center gap-1"
-                >
-                  Live Chat
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-stone-700 uppercase tracking-widest ml-1">
+                    Email Address
+                  </label>
+                  <div className="relative group transition-all duration-300">
+                    <CustomInput
+                      name="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      className="w-full h-12 bg-stone-50 border border-transparent focus:border-emerald-900/20 focus:bg-white focus:ring-4 focus:ring-emerald-50/50 rounded-xl px-4 transition-all outline-none placeholder:text-stone-400 text-stone-900 font-medium pl-11"
+                      rules={{
+                        required: "Email is required",
+                        pattern: {
+                          value: /^\S+@\S+\.\S+$/,
+                          message: "Invalid email address",
+                        },
+                      }}
                     />
-                  </svg>
-                </a>
-              </p>
+                    <Mail
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 group-focus-within:text-emerald-800 transition-colors"
+                      strokeWidth={1.8}
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-red-600 text-xs mt-1 font-medium ml-1">
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-stone-700 uppercase tracking-widest ml-1">
+                    Phone Number
+                  </label>
+                  <div className="relative group transition-all duration-300">
+                    <CustomInput
+                      name="phone"
+                      type="tel"
+                      placeholder="1234567890"
+                      className="w-full h-12 bg-stone-50 border border-transparent focus:border-emerald-900/20 focus:bg-white focus:ring-4 focus:ring-emerald-50/50 rounded-xl px-4 transition-all outline-none placeholder:text-stone-400 text-stone-900 font-medium pl-11"
+                      rules={{
+                        required: "Phone number is required",
+                        pattern: {
+                          value: /^[0-9]{10}$/,
+                          message: "Invalid 10-digit number",
+                        },
+                      }}
+                    />
+                    <Phone
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 group-focus-within:text-emerald-800 transition-colors"
+                      strokeWidth={1.8}
+                    />
+                  </div>
+                  {errors.phone && (
+                    <p className="text-red-600 text-xs mt-1 font-medium ml-1">
+                      {errors.phone.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-stone-700 uppercase tracking-widest ml-1">
+                    Password
+                  </label>
+                  <div className="relative group transition-all duration-300">
+                    <CustomInput
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="w-full h-12 bg-stone-50 border border-transparent focus:border-emerald-900/20 focus:bg-white focus:ring-4 focus:ring-emerald-50/50 rounded-xl px-4 transition-all outline-none placeholder:text-stone-400 text-stone-900 font-medium pl-11 pr-12"
+                      rules={{
+                        required: "Password is required",
+                        minLength: { value: 6, message: "Min 6 chars" },
+                      }}
+                    />
+                    <Lock
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 group-focus-within:text-emerald-800 transition-colors"
+                      strokeWidth={1.8}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 outline-none"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-red-600 text-xs mt-1 font-medium ml-1">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-stone-700 uppercase tracking-widest ml-1">
+                    Confirm Password
+                  </label>
+                  <div className="relative group transition-all duration-300">
+                    <CustomInput
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="w-full h-12 bg-stone-50 border border-transparent focus:border-emerald-900/20 focus:bg-white focus:ring-4 focus:ring-emerald-50/50 rounded-xl px-4 transition-all outline-none placeholder:text-stone-400 text-stone-900 font-medium pl-11 pr-12"
+                      rules={{
+                        required: "Please confirm your password",
+                        validate: (val) =>
+                          val === password || "Passwords do not match",
+                      }}
+                    />
+                    <Lock
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 group-focus-within:text-emerald-800 transition-colors"
+                      strokeWidth={1.8}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 outline-none"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="text-red-600 text-xs mt-1 font-medium ml-1">
+                      {errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Terms & Conditions Checkbox */}
+                <div
+                  className={`p-4 rounded-xl border transition-all duration-300 ${
+                    errors.terms
+                      ? "bg-red-50 border-red-200"
+                      : "bg-stone-50 border-stone-100"
+                  }`}
+                >
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <div
+                      className={`mt-0.5 w-4 h-4 border transition-all flex-shrink-0 flex items-center justify-center rounded ${
+                        termsAccepted
+                          ? "bg-emerald-900 border-emerald-900"
+                          : errors.terms
+                          ? "border-red-400 bg-white"
+                          : "border-stone-300 bg-white group-hover:border-stone-400"
+                      }`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleTerms();
+                      }}
+                    >
+                      {termsAccepted && (
+                        <Check className="w-3 h-3 text-white" />
+                      )}
+                    </div>
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      {...register("terms", {
+                        required: "You must agree to the Terms & Conditions.",
+                      })}
+                    />
+                    <div
+                      className="text-xs text-stone-500 leading-relaxed font-medium select-none"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleTerms();
+                      }}
+                    >
+                      I agree to the{" "}
+                      <Link
+                        href="/term-condition"
+                        className="text-emerald-900 font-bold hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Terms & Conditions
+                      </Link>{" "}
+                      and{" "}
+                      <Link
+                        href="/privacy-policy"
+                        className="text-emerald-900 font-bold hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Privacy Policy
+                      </Link>
+                      .
+                    </div>
+                  </label>
+                  {errors.terms && (
+                    <div className="flex items-center gap-2 mt-2 ml-7 text-red-600 animate-pulse">
+                      <span className="w-1.5 h-1.5 bg-red-600 rounded-full"></span>
+                      <p className="text-[11px] font-bold uppercase tracking-wide">
+                        {errors.terms.message}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Global API Error */}
+                {errors.root && (
+                  <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0 text-red-600 font-bold text-xs">
+                      !
+                    </div>
+                    {errors.root.message}
+                  </div>
+                )}
+
+                {/* CTA Button - Disabled if terms not accepted */}
+                <button
+                  type="submit"
+                  disabled={isRegisterLoading || !termsAccepted}
+                  className="w-full bg-emerald-950 text-white h-14 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-black hover:shadow-lg hover:shadow-emerald-900/10 transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                >
+                  {isRegisterLoading ? (
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      Create Account
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+
+                {/* Social Login Divider */}
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-stone-200"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white px-4 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                      Or register with
+                    </span>
+                  </div>
+                </div>
+
+                {/* Social Buttons */}
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    className="h-12 border border-stone-200 rounded-xl flex items-center justify-center gap-3 hover:bg-stone-50 transition-all group"
+                  >
+                    <img
+                      src="https://www.svgrepo.com/show/475656/google-color.svg"
+                      className="w-5 h-5 group-hover:scale-110 transition-transform"
+                      alt="Google"
+                    />
+                    <span className="text-sm font-bold text-stone-600">
+                      Google
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="h-12 border border-stone-200 rounded-xl flex items-center justify-center gap-3 hover:bg-stone-50 transition-all group"
+                  >
+                    <img
+                      src="https://www.svgrepo.com/show/475647/facebook-color.svg"
+                      className="w-5 h-5 group-hover:scale-110 transition-transform"
+                      alt="Facebook"
+                    />
+                    <span className="text-sm font-bold text-stone-600">
+                      Facebook
+                    </span>
+                  </button>
+                </div>
+
+                {/* Login Link */}
+                <div className="text-center pt-2">
+                  <p className="text-stone-500 text-sm">
+                    Already have an account?
+                    <a
+                      href="/login"
+                      className="text-emerald-900 font-bold ml-1 hover:underline decoration-2 underline-offset-4 decoration-emerald-900/20"
+                    >
+                      Sign in
+                    </a>
+                  </p>
+                </div>
+              </form>
             </div>
+          </div>
+
+          {/* Footer Copyright */}
+          <div className="py-6 w-full text-center">
+            <p className="text-stone-300 text-xs font-medium">
+              © 2025 Krambica Fashion.
+            </p>
           </div>
         </div>
       </div>
