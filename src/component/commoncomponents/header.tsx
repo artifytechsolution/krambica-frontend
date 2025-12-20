@@ -90,8 +90,9 @@ export default function Header({
                     <NextImage
                       src="/logo9.png"
                       alt="Krambica®"
-                      fill
-                      className="object-contain transition-transform duration-300 group-hover:scale-105"
+                      height={300}
+                      width={300}
+                      className=""
                       priority
                     />
                   </div>
