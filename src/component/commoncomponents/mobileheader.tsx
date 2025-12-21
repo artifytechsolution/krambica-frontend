@@ -32,6 +32,7 @@ import {
   Mail,
   UserCircle,
   ChevronRight,
+  LogIn,
 } from "lucide-react";
 import SearchPopup from "./search";
 import NotificationPopup from "./notifications";
@@ -74,6 +75,9 @@ export default function MobileHeader({
       // href: "/login", // <-- Removed
     },
   ];
+  const handleLogin = () => {
+    window.location.href = "/login";
+  };
 
   return (
     <>
@@ -144,6 +148,13 @@ export default function MobileHeader({
                 }}
                 strokeWidth={2.5}
               />
+            </IconButton>
+            <IconButton
+              onClick={handleLogin}
+              className="hover:bg-gray-100 transition-all"
+              aria-label="Login"
+            >
+              <LogIn className="w-5 h-5 text-black" strokeWidth={2} />
             </IconButton>
 
             {/* Notification Icon */}

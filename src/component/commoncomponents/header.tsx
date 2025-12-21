@@ -193,6 +193,13 @@ export default function Header({
                   <ShoppingBag className="w-5 h-5 text-black" strokeWidth={2} />
                 </Badge>
               </IconButton>
+              <IconButton
+                onClick={handleLogin}
+                className="hover:bg-gray-100 transition-all"
+                aria-label="Login"
+              >
+                <LogIn className="w-5 h-5 text-black" strokeWidth={2} />
+              </IconButton>
             </div>
           </Toolbar>
         </Container>
