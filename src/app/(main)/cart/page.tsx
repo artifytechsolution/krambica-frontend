@@ -2386,7 +2386,8 @@ const promotionService = {
 // ============================================
 const couponService = {
   BASE_URL:
-    process.env.NEXT_PUBLIC_COUPON_API_URL || "http://localhost:8020/api",
+    process.env.NEXT_PUBLIC_BACKEND_BASE_URL_DUMMY ||
+    "http://localhost:8020/api",
 
   async validateCoupon(promoCode, orderValue, userId) {
     try {
