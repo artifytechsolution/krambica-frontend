@@ -541,7 +541,7 @@ const UserProfile = () => {
   const user = useAppSelector(selectUser);
 
   // Correct API Endpoint with user ID
-  const apiUrl = `http://localhost:8020/api/orders/users/${user?.user_id}/orders`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL_DUMMY}/api/orders/users/${user?.user_id}/orders`;
   const updateUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL_DUMMY}/api/auth/${user?.id}`;
 
   const [isEditing, setIsEditing] = useState(false);
