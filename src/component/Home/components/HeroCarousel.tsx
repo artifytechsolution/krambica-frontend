@@ -1,244 +1,159 @@
 "use client";
-import React, { useRef, useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const HeroCarousel = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [progress, setProgress] = useState(0);
+const slides = [
+  {
+    id: "01",
+    title: "The Minimalist Edit",
+    subtitle: "New Season",
+    description:
+      "Curated textures and organic shapes for a refined living experience.",
+    img: "/banners/webbanner1.png", // 1536 x 1024
+    mobileImg: "/banners/mobilebanner1.png", // 1080 x 1920
+  },
+  {
+    id: "02",
+    title: "Architectural Form",
+    subtitle: "Atelier Collection",
+    description:
+      "Where structure meets comfort. Explore our latest designer collaborations.",
+    img: "/banners/webbanner2.png",
+    mobileImg: "/banners/mobilebanner2.png",
+  },
+  {
+    id: "03",
+    title: "Organic Silk",
+    subtitle: "Premium Textiles",
+    description:
+      "Lightweight fabrics designed to breathe and move with the light of your home.",
+    img: "/banners/webbanner3.png",
+    mobileImg: "/banners/mobilebanner3.png",
+  },
+];
 
-  // Touch handling
-  const touchStart = useRef(0);
-  const touchEnd = useRef(0);
+const PremiumSplitCarousel = () => {
+  const [index, setIndex] = useState(0);
 
-  // --- UPDATED & EXPANDED SLIDES ARRAY (8 Images) ---
-  const slides = [
-    {
-      id: 1,
-      title: "Velvet Midnight",
-      subtitle: "Winter Gala Collection",
-      price: "$299",
-      // Original high-quality evening wear image
-      image:
-        "https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=1920&auto=format&fit=crop",
-    },
+  const nextSlide = useCallback(() => {
+    setIndex((prev) => (prev + 1) % slides.length);
+  }, []);
 
-    {
-      id: 4,
-      title: "Golden Hour",
-      subtitle: "Evening Gowns",
-      price: "$450",
-      // Warm, glamorous evening gown image
-      image:
-        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-    },
-    // --- NEW IMAGES ADDED BELOW ---
-    {
-      id: 5,
-      title: "Atelier Blanc",
-      subtitle: "Bridal Couture",
-      price: "$890",
-      // Elegant white/bridal high-fashion shot
-      image:
-        "https://images.unsplash.com/photo-1596483724223-402563599133?q=80&w=1920&auto=format&fit=crop",
-    },
-    {
-      id: 6,
-      title: "Gilded Edge",
-      subtitle: "Fine Jewelry & Accessories",
-      price: "$1,200",
-      // Close-up luxury accessory/beauty shot
-      image:
-        "https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=1920&auto=format&fit=crop",
-    },
-    {
-      id: 7,
-      title: "Modernist Suiting",
-      subtitle: "Tailored Perfection",
-      price: "$350",
-      // sleek, androgynous fashion shot
-      image:
-        "https://images.unsplash.com/photo-1495385794356-15371f348c31?q=80&w=1920&auto=format&fit=crop",
-    },
-  ];
+  const prevSlide = useCallback(() => {
+    setIndex((prev) => (prev - 1 + slides.length) % slides.length);
+  }, []);
 
-  const SLIDE_DURATION = 6000; // 6 seconds per slide
-
-  const nextSlide = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-    setProgress(0);
-    setTimeout(() => setIsAnimating(false), 1000); // Match transition duration
-  };
-
-  const prevSlide = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-    setProgress(0);
-    setTimeout(() => setIsAnimating(false), 1000);
-  };
-
-  const goToSlide = (index) => {
-    if (isAnimating || index === currentSlide) return;
-    setIsAnimating(true);
-    setCurrentSlide(index);
-    setProgress(0);
-    setTimeout(() => setIsAnimating(false), 1000);
-  };
-
-  // --- Animation Loop ---
   useEffect(() => {
-    let startTime = Date.now();
-    let animationFrameId;
-    // Reset progress on slide change
-    setProgress(0);
-
-    const animate = () => {
-      if (isAnimating) return; // Pause progress during transition animation
-      const elapsed = Date.now() - startTime;
-      const newProgress = Math.min((elapsed / SLIDE_DURATION) * 100, 100);
-      setProgress(newProgress);
-
-      if (elapsed < SLIDE_DURATION) {
-        animationFrameId = requestAnimationFrame(animate);
-      } else {
-        nextSlide();
-      }
-    };
-
-    animationFrameId = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [currentSlide, isAnimating]); // Restart when slide changes or animation finishes
-
-  // --- Touch Logic ---
-  const handleTouchStart = (e) =>
-    (touchStart.current = e.targetTouches[0].clientX);
-  const handleTouchMove = (e) =>
-    (touchEnd.current = e.targetTouches[0].clientX);
-  const handleTouchEnd = () => {
-    if (!touchStart.current || !touchEnd.current) return;
-    const distance = touchStart.current - touchEnd.current;
-    if (distance > 50) nextSlide();
-    if (distance < -50) prevSlide();
-    touchStart.current = 0;
-    touchEnd.current = 0;
-  };
+    const timer = setInterval(nextSlide, 6000);
+    return () => clearInterval(timer);
+  }, [nextSlide]);
 
   return (
-    <div
-      className="relative w-full h-[100dvh] md:h-[90vh] bg-stone-900 overflow-hidden text-white"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <style jsx global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lato:wght@300;400;700&display=swap");
-        .font-display {
-          font-family: "Cinzel", serif;
-        }
-        .font-body {
-          font-family: "Lato", sans-serif;
-        }
-      `}</style>
-
-      {/* --- Slides Layer --- */}
-      {slides.map((slide, index) => (
-        <div
-          key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-          }`}
-        >
-          {/* Background Image with slight Ken Burns effect */}
-          <div
-            className={`absolute inset-0 ${
-              index === currentSlide
-                ? "animate-[scale_10s_ease-out_forwards]"
-                : ""
-            }`}
+    <div className="w-full max-w-[1536px] mx-auto bg-white md:px-12 md:py-8 font-sans">
+      {/* --- MOBILE VIEW: Full-bleed imagery --- */}
+      <div className="relative block md:hidden w-full h-[100dvh] bg-white overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`mobile-${index}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="absolute inset-0"
           >
             <img
-              src={slide.image}
-              alt={slide.title}
+              src={slides[index].mobileImg}
+              alt={slides[index].title}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black/30 md:bg-black/20" />
-            {/* Gradient for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Text area with solid white background to avoid needing shadows/gradients on the image */}
+      </div>
+
+      {/* --- DESKTOP VIEW: Clean 33/67 Split with no gradient shade --- */}
+      <div className="relative hidden md:flex flex-row h-[600px] bg-[#F9F9F7] rounded-[2rem] overflow-hidden border border-stone-100">
+        {/* LEFT PANEL: 33% Solid Background */}
+        <div className="w-full md:w-[33%] p-8 md:p-12 lg:p-14 flex flex-col justify-between z-20 bg-[#F9F9F7]">
+          <div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.5 }}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-stone-400">
+                  {slides[index].subtitle}
+                </span>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-stone-900 mt-4 mb-6 leading-tight">
+                  {slides[index].title}
+                </h1>
+                <p className="text-stone-500 text-sm leading-relaxed mb-8">
+                  {slides[index].description}
+                </p>
+                <button className="group flex items-center gap-4 text-stone-900 font-bold text-xs uppercase tracking-widest transition-all">
+                  View Collection
+                  <div className="w-8 h-[1px] bg-stone-900 transition-all group-hover:w-14" />
+                </button>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <div className="flex items-center gap-5 mt-10">
+            <div className="flex gap-2">
+              <button
+                onClick={prevSlide}
+                className="p-2.5 rounded-full border border-stone-200 text-stone-400 hover:text-stone-900 hover:border-stone-900 transition-all active:scale-95 bg-white"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                onClick={nextSlide}
+                className="p-2.5 rounded-full border border-stone-200 text-stone-400 hover:text-stone-900 hover:border-stone-900 transition-all active:scale-95 bg-white"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+
+            <div className="flex gap-1.5">
+              {slides.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    i === index ? "w-6 bg-stone-900" : "w-1.5 bg-stone-200"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      ))}
 
-      {/* --- UI Layer (Static on top) --- */}
-      <div className="absolute inset-0 z-20 flex flex-col justify-end md:justify-center px-6 pb-24 md:pb-0 md:px-20 max-w-[1600px] mx-auto w-full pointer-events-none">
-        {/* Main Text Content */}
-        <div className="max-w-2xl pointer-events-auto">
-          {slides.map(
-            (slide, index) =>
-              index === currentSlide && (
-                <div
-                  key={slide.id}
-                  className="animate-in fade-in slide-in-from-bottom-8 duration-1000"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-12 h-[1px] bg-white/60"></span>
-                    <span className="text-xs font-bold tracking-[0.2em] uppercase text-white/90">
-                      {slide.subtitle}
-                    </span>
-                  </div>
-
-                  <h1 className="font-display text-5xl md:text-7xl lg:text-8xl leading-[0.9] mb-6">
-                    {slide.title}
-                  </h1>
-
-                  <p className="text-white/80 font-body text-lg md:text-xl font-light mb-8 max-w-md border-l-2 border-white/20 pl-4">
-                    Experience the new standard of elegance. Crafted for the
-                    modern muse.
-                  </p>
-
-                  <div className="flex items-center gap-6">
-                    <button className="bg-white text-stone-900 px-8 py-4 rounded-none font-bold tracking-widest uppercase hover:bg-stone-200 transition-colors flex items-center gap-2">
-                      Shop Look <ArrowUpRight size={18} />
-                    </button>
-                    <span className="text-2xl font-display">{slide.price}</span>
-                  </div>
-                </div>
-              )
-          )}
+        {/* RIGHT PANEL: 67% Image - No Shade/Gradient Overlays */}
+        <div className="w-full md:w-[67%] relative h-full overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6 }}
+              className="h-full w-full"
+            >
+              <img
+                src={slides[index].img}
+                alt={slides[index].title}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </div>
-
-      {/* --- Right Side Navigation (Desktop) --- */}
-      {/* Added max-h and overflow handling for many slides */}
-
-      {/* --- Bottom Progress (Mobile) --- */}
-      <div className="absolute bottom-0 left-0 w-full h-1 z-30 md:hidden bg-white/20">
-        <div
-          className="h-full bg-white transition-all duration-100 ease-linear"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
-      {/* --- Navigation Buttons (Bottom Right Desktop) --- */}
-      <div className="hidden md:flex absolute bottom-12 right-12 z-30 gap-2">
-        <button
-          onClick={prevSlide}
-          className="w-14 h-14 border border-white/20 flex items-center justify-center hover:bg-white hover:text-stone-900 transition-all active:scale-95"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="w-14 h-14 border border-white/20 flex items-center justify-center hover:bg-white hover:text-stone-900 transition-all active:scale-95"
-        >
-          <ChevronRight size={24} />
-        </button>
       </div>
     </div>
   );
 };
 
-export default HeroCarousel;
+export default PremiumSplitCarousel;

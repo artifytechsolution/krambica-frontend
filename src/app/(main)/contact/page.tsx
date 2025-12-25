@@ -24,6 +24,7 @@ import {
   FaLinkedinIn,
   FaWhatsapp,
 } from "react-icons/fa";
+import Image from "next/image";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -342,37 +343,56 @@ const ContactPage = () => {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div>
               <h2 className="text-4xl font-serif text-slate-900 mb-4">
-                Our Boutiques
+                Our Stores
               </h2>
               <p className="text-slate-500">
                 Experience our collection in Gujarat.
               </p>
             </div>
-            <button className="text-emerald-800 font-medium hover:text-emerald-600 flex items-center gap-2">
+            {/* <button className="text-emerald-800 font-medium hover:text-emerald-600 flex items-center gap-2">
               View all locations <FiArrowRight className="w-4 h-4" />
-            </button>
+            </button> */}
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Bhavnagar Store */}
+            {/* Vadodara (Gotri) Store */}
             <div className="group relative h-[400px] rounded-3xl overflow-hidden cursor-pointer">
+              {/* Overlay Layer */}
               <div className="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/20 transition-colors z-10"></div>
-              {/* Bhavnagar Image Placeholder */}
-              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555529771-83ae9289fd6e?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-700 group-hover:scale-105"></div>
 
+              {/* Image Layer */}
+              <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-105">
+                <Image
+                  src="/journey/journey5.jpg"
+                  alt="Vadodara Studio"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority={true}
+                />
+              </div>
+
+              {/* Content Layer */}
               <div className="absolute bottom-0 left-0 p-8 z-20 w-full text-white">
                 <div className="flex justify-between items-end">
                   <div>
-                    <h3 className="text-3xl font-serif mb-2">
-                      Bhavnagar Flagship
-                    </h3>
+                    <h3 className="text-3xl font-serif mb-2">Baroda Studio</h3>
                     <div className="flex items-center gap-2 text-white/80 text-sm mb-1">
                       <FiMapPin className="w-4 h-4" />
-                      <span>Waghawadi Road, Bhavnagar, 364001</span>
+                      <span>
+                        111, Lotus Elite, Gotri Sevasi Road,
+                        <br />
+                        Gotri, Vadodara 390021,
+                        <br />
+                        Gujarat, India
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-white/80 text-sm">
                       <FiClock className="w-4 h-4" />
                       <span>Mon-Sat: 10AM - 9PM</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white/80 text-sm mt-1">
+                      <span>📞 7485908799</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-emerald-900 transition-all">
@@ -382,23 +402,46 @@ const ContactPage = () => {
               </div>
             </div>
 
-            {/* Baroda (Vadodara) Store */}
+            {/* Bhavnagar Store */}
             <div className="group relative h-[400px] rounded-3xl overflow-hidden cursor-pointer">
+              {/* Overlay Layer */}
               <div className="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/20 transition-colors z-10"></div>
-              {/* Baroda Image Placeholder */}
-              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-700 group-hover:scale-105"></div>
 
+              {/* Image Layer */}
+              <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-105">
+                <Image
+                  src="/journey/journey6.png"
+                  alt="Bhavnagar Studio"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority={true}
+                />
+              </div>
+
+              {/* Content Layer */}
               <div className="absolute bottom-0 left-0 p-8 z-20 w-full text-white">
                 <div className="flex justify-between items-end">
                   <div>
-                    <h3 className="text-3xl font-serif mb-2">Baroda Studio</h3>
+                    <h3 className="text-3xl font-serif mb-2">
+                      Bhavnagar Studio
+                    </h3>
                     <div className="flex items-center gap-2 text-white/80 text-sm mb-1">
                       <FiMapPin className="w-4 h-4" />
-                      <span>Alkapuri, Vadodara, 390007</span>
+                      <span>
+                        Shoppers Point, Parimal Chowk,
+                        <br />
+                        102, Waghawadi Rd., Hill Drive,
+                        <br />
+                        Bhavnagar, Gujarat 364001
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-white/80 text-sm">
                       <FiClock className="w-4 h-4" />
                       <span>Mon-Sat: 10AM - 9PM</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white/80 text-sm mt-1">
+                      <span>📞 090990 96618</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-emerald-900 transition-all">
@@ -421,20 +464,48 @@ const ContactPage = () => {
           <div className="space-y-4">
             {[
               {
-                q: "What are your store hours in Bhavnagar?",
-                a: "Our Bhavnagar and Baroda stores are open Monday through Saturday from 10:00 AM to 9:00 PM. We are closed on major holidays.",
+                q: "What fabric is used in Krambica garments?",
+                a: "All Krambica garments are made from premium-quality pure cotton, ensuring softness, breathability, and long-lasting comfort.",
               },
               {
-                q: "Do you ship to other cities?",
-                a: "Yes! While our physical stores are in Gujarat, we ship our collection across India via krambica.com.",
+                q: "Are Krambica products suitable for daily wear?",
+                a: "Yes. Krambica specializes in comfortable daily wear, ideal for long hours and everyday use.",
               },
               {
-                q: "Can I pick up my online order in-store?",
-                a: "Absolutely. Select 'Store Pickup' at checkout and choose either our Bhavnagar or Baroda location.",
+                q: "Do Krambica garments have color bleeding or shrinkage?",
+                a: "No. Our garments are processed to ensure no color bleeding and no shrinkage. To maintain fabric quality and color freshness, we recommend drying the garments away from direct sunlight.",
               },
               {
-                q: "Do you offer customization?",
-                a: "Yes, we offer alterations and customization services at both store locations. Visit us to discuss your requirements.",
+                q: "How do I choose the right size?",
+                a: "You can refer to the size chart available on each product page. For better accuracy, we have also provided a step-by-step video guide on how to measure your size.",
+              },
+              {
+                q: "What if the size doesn’t fit me or I receive a wrong product?",
+                a: "You can request an exchange within 7 days of delivery for size issues or incorrect items.",
+              },
+              {
+                q: "Do you deliver across India?",
+                a: "Yes, Krambica delivers all over India through reliable courier partners.",
+              },
+              {
+                q: "How long does delivery take?",
+                a: "Orders are usually delivered within 4–7 working days, depending on your location.",
+              },
+              {
+                q: "What payment methods do you accept?",
+                a: "We accept UPI, debit cards, credit cards, and net banking through secure payment gateways.",
+              },
+              {
+                q: "Is it safe to shop on the Krambica website?",
+                a: "Yes. Our website uses secure and encrypted payment gateways to protect your personal and payment information.",
+              },
+              {
+                q: "Do you offer wholesale or bulk purchase options?",
+                a: "Yes. Krambica supplies directly to retailers at wholesale rates and also offers area monopoly to selected partners.",
+              },
+              {
+                q: "What makes Krambica different from other brands?",
+                a: "Krambica delivers premium pure cotton quality at wholesale pricing, supplies directly to shops, and focuses on comfort-first designs — unlike most big brands.",
               },
             ].map((faq, i) => (
               <div

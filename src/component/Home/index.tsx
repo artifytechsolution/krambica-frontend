@@ -562,13 +562,13 @@ const FloatingButtons = () => {
   return (
     <>
       <div className="fixed right-4 md:right-6 bottom-20 md:bottom-6 z-50 flex flex-col gap-3 md:gap-4">
-        <button
+        {/* <button
           onClick={() => setShowChat(true)}
           className="group bg-gradient-to-r from-[#115e59] to-[#134e4a] text-white w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 relative"
         >
           <MessageCircle className="w-6 h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" />
           <span className="absolute -top-1 -right-1 w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-full animate-pulse"></span>
-        </button>
+        </button> */}
 
         <button
           onClick={() => setShowWhatsApp(true)}
@@ -695,13 +695,7 @@ const FloatingButtons = () => {
               <div className="w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Clock className="w-8 h-8 md:w-10 md:h-10 text-green-600" />
               </div>
-              <h3 className="font-display text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">
-                Coming Soon!
-              </h3>
-              <p className="font-body text-gray-600 text-sm md:text-base mb-4 md:mb-6 leading-relaxed">
-                WhatsApp support is launching soon! We're setting up to provide
-                you with instant assistance.
-              </p>
+
               <p className="font-body text-xs md:text-sm text-gray-500 mb-4 md:mb-6">
                 For immediate help, please contact:
               </p>
