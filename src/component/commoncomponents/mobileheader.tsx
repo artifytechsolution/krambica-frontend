@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
-import { useRouter } from "next/navigation"; // <-- Add this import
+import { useRouter } from "next/navigation";
 import {
   AppBar,
   Toolbar,
@@ -17,6 +17,7 @@ import {
   ListItemText,
   Box,
   Divider,
+  Collapse,
 } from "@mui/material";
 import {
   Search,
@@ -32,7 +33,9 @@ import {
   Mail,
   UserCircle,
   ChevronRight,
+  ChevronDown,
   LogIn,
+  ArrowRight,
 } from "lucide-react";
 import SearchPopup from "./search";
 import NotificationPopup from "./notifications";
@@ -40,6 +43,11 @@ import NotificationPopup from "./notifications";
 interface MobileHeaderProps {
   wishlistCount?: number;
   notificationCount?: number;
+}
+
+interface Category {
+  name: string;
+  slug: string;
 }
 
 export default function MobileHeader({
@@ -50,34 +58,65 @@ export default function MobileHeader({
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
 
-  const router = useRouter(); // <-- Add router for proper client-side navigation
+  // State to toggle the Collection accordion
+  const [collectionOpen, setCollectionOpen] = useState(false);
+
+  // State for Dynamic Categories
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const router = useRouter();
+
+  // ==========================================
+  // FETCH CATEGORIES
+  // ==========================================
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL_DUMMY}/api/categories`
+        );
+        const json = await response.json();
+
+        // Check structure: { status: "success", data: { data: [...] } }
+        if (
+          json.status === "success" &&
+          json.data &&
+          Array.isArray(json.data.data)
+        ) {
+          const mappedData = json.data.data.map((item: any) => ({
+            name: item.name,
+            slug: item.slug,
+          }));
+          setCategories(mappedData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch mobile categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleLogout = () => {
-    // Clear all data from localStorage (e.g., auth token, user info, etc.)
-
-    // Redirect to login page using Next.js client-side navigation
     localStorage.clear();
     window.location.href = "/login";
   };
 
+  const handleLogin = () => {
+    window.location.href = "/login";
+  };
+
+  // Main Menu Items
   const menuItems = [
     { text: "Home", icon: Home, href: "/home" },
     { text: "Shop", icon: Store, href: "/shop" },
-    { text: "Collection", icon: Layers, href: "/collection" },
+    { text: "Collection", icon: Layers, href: "#" }, // Acts as toggle
     { text: "Offer", icon: Tag, href: "/offer" },
     { text: "About", icon: Info, href: "/about" },
     { text: "Contact", icon: Mail, href: "/contact" },
     { text: "My Account", icon: UserCircle, href: "/profile" },
-    {
-      text: "Logout",
-      icon: UserCircle,
-      // Remove href so it doesn't navigate via Link
-      // href: "/login", // <-- Removed
-    },
+    { text: "Logout", icon: UserCircle, href: null },
   ];
-  const handleLogin = () => {
-    window.location.href = "/login";
-  };
 
   return (
     <>
@@ -156,43 +195,6 @@ export default function MobileHeader({
             >
               <LogIn className="w-5 h-5 text-black" strokeWidth={2} />
             </IconButton>
-
-            {/* Notification Icon */}
-            {/* <IconButton
-              onClick={() => setNotificationOpen(true)}
-              className="text-black hover:bg-gray-100 active:scale-95 transition-all"
-              size="small"
-              sx={{
-                width: { xs: "36px", sm: "40px" },
-                height: { xs: "36px", sm: "40px" },
-                padding: "8px",
-              }}
-              aria-label="Notifications"
-            >
-              <Badge
-                badgeContent={notificationCount}
-                max={99}
-                sx={{
-                  "& .MuiBadge-badge": {
-                    backgroundColor: "#000000",
-                    color: "#ffffff",
-                    fontSize: { xs: "0.625rem", sm: "0.75rem" },
-                    minWidth: { xs: "16px", sm: "18px" },
-                    height: { xs: "16px", sm: "18px" },
-                    fontWeight: "bold",
-                    padding: { xs: "0 4px", sm: "0 5px" },
-                  },
-                }}
-              >
-                <Bell
-                  style={{
-                    width: "clamp(16px, 4vw, 20px)",
-                    height: "clamp(16px, 4vw, 20px)",
-                  }}
-                  strokeWidth={2.5}
-                />
-              </Badge>
-            </IconButton> */}
 
             {/* Wishlist Icon */}
             <IconButton
@@ -315,18 +317,16 @@ export default function MobileHeader({
             gap: { xs: "4px", sm: "8px" },
           }}
         >
-          {menuItems.map((item, index) => {
+          {menuItems.map((item) => {
             const IconComponent = item.icon;
 
-            // Special handling for Logout item
+            // 1. LOGOUT Logic
             if (item.text === "Logout") {
               return (
                 <React.Fragment key={item.text}>
                   <ListItem
                     disablePadding
-                    sx={{
-                      marginBottom: { xs: "2px", sm: "4px" },
-                    }}
+                    sx={{ marginBottom: { xs: "2px", sm: "4px" } }}
                   >
                     <ListItemButton
                       onClick={handleLogout}
@@ -334,22 +334,14 @@ export default function MobileHeader({
                       sx={{
                         padding: { xs: "12px 16px", sm: "14px 16px" },
                         borderRadius: "12px",
-                        "&:active": {
-                          transform: "scale(0.98)",
-                        },
                       }}
                     >
                       <ListItemIcon
                         className="text-black group-hover:text-gray-700 transition-colors"
-                        sx={{
-                          minWidth: { xs: "36px", sm: "40px" },
-                        }}
+                        sx={{ minWidth: { xs: "36px", sm: "40px" } }}
                       >
                         <IconComponent
-                          style={{
-                            width: "clamp(18px, 4vw, 20px)",
-                            height: "clamp(18px, 4vw, 20px)",
-                          }}
+                          style={{ width: "20px", height: "20px" }}
                           strokeWidth={2.5}
                         />
                       </ListItemIcon>
@@ -358,66 +350,175 @@ export default function MobileHeader({
                         primaryTypographyProps={{
                           className:
                             "font-semibold text-black group-hover:text-gray-700",
-                          sx: {
-                            fontSize: { xs: "0.9375rem", sm: "1rem" },
-                          },
+                          sx: { fontSize: "1rem" },
                         }}
                       />
                       <ChevronRight
                         className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                        style={{
-                          width: "clamp(16px, 3.5vw, 18px)",
-                          height: "clamp(16px, 3.5vw, 18px)",
-                        }}
+                        style={{ width: "18px", height: "18px" }}
                         strokeWidth={2.5}
                       />
                     </ListItemButton>
                   </ListItem>
-                  {index === 3 && (
-                    <Divider
-                      sx={{
-                        marginY: { xs: "8px", sm: "12px" },
-                        borderColor: "rgba(0, 0, 0, 0.08)",
-                      }}
-                    />
-                  )}
+                  <Divider
+                    sx={{ marginY: "12px", borderColor: "rgba(0, 0, 0, 0.08)" }}
+                  />
                 </React.Fragment>
               );
             }
 
-            // Normal menu items
+            // 2. COLLECTION LOGIC (Accordion)
+            if (item.text === "Collection") {
+              return (
+                <React.Fragment key={item.text}>
+                  <ListItem disablePadding sx={{ marginBottom: "4px" }}>
+                    <ListItemButton
+                      onClick={() => setCollectionOpen(!collectionOpen)} // Toggle state
+                      className={`text-black transition-all rounded-xl group ${
+                        collectionOpen ? "bg-gray-50" : "hover:bg-gray-100"
+                      }`}
+                      sx={{
+                        padding: { xs: "12px 16px", sm: "14px 16px" },
+                        borderRadius: "12px",
+                      }}
+                    >
+                      <ListItemIcon
+                        className="text-black transition-colors"
+                        sx={{ minWidth: { xs: "36px", sm: "40px" } }}
+                      >
+                        <IconComponent
+                          style={{ width: "20px", height: "20px" }}
+                          strokeWidth={2.5}
+                        />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.text}
+                        primaryTypographyProps={{
+                          className: "font-semibold text-black",
+                          sx: { fontSize: "1rem" },
+                        }}
+                      />
+                      {/* Chevron rotates based on open state */}
+                      {collectionOpen ? (
+                        <ChevronDown
+                          className="text-gray-600"
+                          style={{ width: "18px", height: "18px" }}
+                          strokeWidth={2.5}
+                        />
+                      ) : (
+                        <ChevronRight
+                          className="text-gray-400"
+                          style={{ width: "18px", height: "18px" }}
+                          strokeWidth={2.5}
+                        />
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+
+                  {/* DYNAMIC SUB-MENU ITEMS */}
+                  <Collapse in={collectionOpen} timeout="auto" unmountOnExit>
+                    <List
+                      component="div"
+                      disablePadding
+                      sx={{ paddingLeft: "16px", marginBottom: "8px" }}
+                    >
+                      {/* Dynamic Categories Mapping */}
+                      {categories.map((cat, idx) => (
+                        <ListItemButton
+                          key={idx}
+                          component={Link}
+                          href={`/shop/${cat.slug}`}
+                          onClick={() => setDrawerOpen(false)} // Close drawer on click
+                          sx={{
+                            pl: 4,
+                            borderRadius: "10px",
+                            marginY: "2px",
+                            "&:hover": { backgroundColor: "#f9fafb" },
+                          }}
+                        >
+                          {/* Dot indicator */}
+                          <ListItemIcon sx={{ minWidth: "24px" }}>
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={cat.name}
+                            primaryTypographyProps={{
+                              fontSize: "0.9rem",
+                              fontWeight: 500,
+                              color: "#4b5563",
+                              textTransform: "capitalize",
+                            }}
+                          />
+                        </ListItemButton>
+                      ))}
+
+                      {/* Fallback/Empty State */}
+                      {categories.length === 0 && (
+                        <ListItemButton sx={{ pl: 4 }}>
+                          <ListItemText
+                            primary="Loading categories..."
+                            primaryTypographyProps={{
+                              fontSize: "0.8rem",
+                              color: "#9ca3af",
+                            }}
+                          />
+                        </ListItemButton>
+                      )}
+
+                      {/* "View All" Link at bottom */}
+                      <ListItemButton
+                        component={Link}
+                        href="/shop"
+                        onClick={() => setDrawerOpen(false)}
+                        sx={{
+                          pl: 4,
+                          borderRadius: "10px",
+                          marginY: "2px",
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: "24px" }}>
+                          <ArrowRight size={14} className="text-gray-400" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary="View All Products"
+                          primaryTypographyProps={{
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                            color: "#000000",
+                            textTransform: "uppercase",
+                            letterSpacing: "1px",
+                          }}
+                        />
+                      </ListItemButton>
+                    </List>
+                  </Collapse>
+                </React.Fragment>
+              );
+            }
+
+            // 3. STANDARD LOGIC
             return (
               <React.Fragment key={item.text}>
                 <ListItem
                   disablePadding
-                  sx={{
-                    marginBottom: { xs: "2px", sm: "4px" },
-                  }}
+                  sx={{ marginBottom: { xs: "2px", sm: "4px" } }}
                 >
                   <ListItemButton
                     component={Link}
-                    href={item.href}
+                    href={item.href || "#"}
                     onClick={() => setDrawerOpen(false)}
                     className="text-black hover:bg-gray-100 active:bg-gray-200 transition-all rounded-xl group"
                     sx={{
                       padding: { xs: "12px 16px", sm: "14px 16px" },
                       borderRadius: "12px",
-                      "&:active": {
-                        transform: "scale(0.98)",
-                      },
                     }}
                   >
                     <ListItemIcon
                       className="text-black group-hover:text-gray-700 transition-colors"
-                      sx={{
-                        minWidth: { xs: "36px", sm: "40px" },
-                      }}
+                      sx={{ minWidth: { xs: "36px", sm: "40px" } }}
                     >
                       <IconComponent
-                        style={{
-                          width: "clamp(18px, 4vw, 20px)",
-                          height: "clamp(18px, 4vw, 20px)",
-                        }}
+                        style={{ width: "20px", height: "20px" }}
                         strokeWidth={2.5}
                       />
                     </ListItemIcon>
@@ -426,35 +527,22 @@ export default function MobileHeader({
                       primaryTypographyProps={{
                         className:
                           "font-semibold text-black group-hover:text-gray-700",
-                        sx: {
-                          fontSize: { xs: "0.9375rem", sm: "1rem" },
-                        },
+                        sx: { fontSize: "1rem" },
                       }}
                     />
                     <ChevronRight
                       className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{
-                        width: "clamp(16px, 3.5vw, 18px)",
-                        height: "clamp(16px, 3.5vw, 18px)",
-                      }}
+                      style={{ width: "18px", height: "18px" }}
                       strokeWidth={2.5}
                     />
                   </ListItemButton>
                 </ListItem>
-                {index === 3 && (
-                  <Divider
-                    sx={{
-                      marginY: { xs: "8px", sm: "12px" },
-                      borderColor: "rgba(0, 0, 0, 0.08)",
-                    }}
-                  />
-                )}
               </React.Fragment>
             );
           })}
         </List>
 
-        {/* Drawer Footer (Optional) */}
+        {/* Drawer Footer */}
         <Box
           className="mt-auto border-t border-gray-200 bg-gray-50"
           sx={{
@@ -462,12 +550,7 @@ export default function MobileHeader({
           }}
         >
           <Box className="text-center">
-            <p
-              className="text-gray-500"
-              style={{
-                fontSize: "clamp(0.75rem, 3vw, 0.875rem)",
-              }}
-            >
+            <p className="text-gray-500" style={{ fontSize: "0.875rem" }}>
               © 2025 Krambica. All rights reserved.
             </p>
           </Box>

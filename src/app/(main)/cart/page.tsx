@@ -2345,6 +2345,7 @@ import {
   increaseQuantity,
   decreaseQuantity,
   clearCart,
+  selectUser,
 } from "@src/redux/reducers/authSlice";
 import { useRouter } from "next/navigation";
 import {
@@ -2352,6 +2353,7 @@ import {
   useAddAddress,
   useCreateOrder,
 } from "@src/hooks/apiHooks";
+import { useAppSelector } from "@src/redux/store";
 
 // ============================================
 // PROMOTION SERVICE
@@ -3756,6 +3758,8 @@ const MobileTwoStepCheckout = ({
   isCheckoutLoading,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const user = useAppSelector(selectUser);
+  const router = useRouter();
 
   if (!isOpen) return null;
 
@@ -3777,6 +3781,10 @@ const MobileTwoStepCheckout = ({
   };
 
   const handleCheckoutClick = async () => {
+    if (!user) {
+      console.log("User not logged in. Redirecting to login page.");
+      router.push("/login");
+    }
     await onCheckout();
     setCurrentStep(1);
   };
@@ -4126,6 +4134,9 @@ export default function KrambicaCart() {
   const cartItems = useSelector(selectCartItems);
   const cartTotal = useSelector(selectCartTotal);
   const router = useRouter();
+  useEffect(() => {
+    if (!user) router.push("/login");
+  }, []);
 
   const {
     isError: isAddressListError,
@@ -4153,8 +4164,9 @@ export default function KrambicaCart() {
     type: "info",
   });
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const user = useAppSelector(selectUser);
 
-  const STATIC_USER_ID = "6ed3eac0-77bc-42c0-a10c-50391452f53c";
+  const STATIC_USER_ID = user?.id;
 
   const {
     eligiblePromotions,
@@ -4162,10 +4174,10 @@ export default function KrambicaCart() {
     freeProducts,
     isValidating: isPromotionValidating,
     totalDiscount: promotionDiscount,
-  } = usePromotions(cartItems, 1);
+  } = usePromotions(cartItems, user?.user_id);
 
   useEffect(() => {
-    AddressListMutate({ emaiL: "kevalkhetani15@gmail.com" });
+    AddressListMutate({ emaiL: user?.email });
   }, []);
 
   const addresses = AddressListData?.data || [];
@@ -4299,7 +4311,7 @@ export default function KrambicaCart() {
       });
 
       const checkoutData = {
-        user_id: 1,
+        user_id: user?.user_id,
         address_id: selectedAddress.address_id,
         discount: discount || 0,
         items: paidItems,

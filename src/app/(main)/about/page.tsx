@@ -784,7 +784,7 @@
 
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { MdEco, MdContentCut, MdStars } from "react-icons/md";
+import { MdEco, MdContentCut, MdStars, MdLocalMall } from "react-icons/md";
 import {
   IoPlayCircleSharp,
   IoChevronBack,
@@ -799,6 +799,7 @@ import {
 } from "react-icons/fa";
 import { FiInstagram, FiFacebook } from "react-icons/fi";
 import { FaTiktok } from "react-icons/fa";
+import { Check, Leaf, ShoppingBag, Users } from "lucide-react";
 
 // Color Constants
 const COLORS = {
@@ -914,79 +915,126 @@ const Hero = () => {
 
 // Mission Component
 const Mission = () => {
+  // Feature data configuration
+  const features = [
+    {
+      id: 1,
+      icon: <MdEco className="text-2xl text-white" />,
+      title: "Sustainable Materials",
+      desc: "100% organic cotton and recycled blends.",
+    },
+    {
+      id: 2,
+      icon: <MdContentCut className="text-2xl text-white" />,
+      title: "Artisan Craftsmanship",
+      desc: "Hand-finished details by skilled tailors.",
+    },
+    {
+      id: 3,
+      icon: <MdLocalMall className="text-2xl text-white" />,
+      title: "Eco Packaging",
+      desc: "Zero plastic, biodegradable shipping.",
+    },
+    {
+      id: 4,
+      icon: <MdStars className="text-2xl text-white" />,
+      title: "Personal Styling",
+      desc: "Curated looks that match your unique vibe.",
+    },
+  ];
+
   return (
     <section
       id="mission"
-      className="text-white py-12 md:py-20 px-4 md:px-16"
-      style={{ background: COLORS.gradients.dark }}
+      className="relative py-24 px-4 overflow-hidden bg-zinc-950 text-white"
     >
-      <div className="text-center mb-12 md:mb-16">
-        <h2 className="text-2xl md:text-4xl font-serif mb-1">
-          Our mission to inspire
-        </h2>
-        <h2 className="text-2xl md:text-4xl font-serif">through style!</h2>
+      {/* 1. Background Ambient Glow Effects */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-900/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-amber-900/20 rounded-full blur-[120px]" />
       </div>
 
-      <div className="flex justify-center mb-12 md:mb-16 relative h-48 md:h-80">
-        <div className="absolute top-4 md:top-8 left-4 md:left-1/4 w-32 h-40 md:w-56 md:h-64 bg-white rounded-xl md:rounded-2xl overflow-hidden transform -rotate-3 md:-rotate-6 shadow-lg">
-          <img
-            src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&h=500&fit=crop"
-            alt="Sustainable fabrics"
-            className="w-full h-full object-cover"
-          />
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* 2. Text Header */}
+        <div className="text-center mb-20">
+          <h3 className="text-amber-500 text-xs md:text-sm font-bold tracking-[0.3em] uppercase mb-4">
+            Our Philosophy
+          </h3>
+          <h2 className="text-3xl md:text-5xl font-serif leading-tight">
+            We inspire through <br />
+            <span className="bg-gradient-to-r from-amber-200 to-amber-600 bg-clip-text text-transparent">
+              conscious style.
+            </span>
+          </h2>
         </div>
-        <div className="absolute top-0 right-4 md:right-1/4 w-32 h-40 md:w-56 md:h-64 bg-white rounded-xl md:rounded-2xl overflow-hidden transform rotate-3 md:rotate-6 shadow-lg">
-          <img
-            src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=500&fit=crop"
-            alt="Design studio"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="absolute top-8 md:top-16 left-1/2 transform -translate-x-1/2 w-36 h-44 md:w-64 md:h-72 bg-white rounded-xl md:rounded-2xl overflow-hidden z-10 shadow-xl">
-          <img
-            src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=500&fit=crop"
-            alt="Model wearing collection"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-6xl mx-auto mt-8 md:mt-12">
-        <div className="text-center">
+        {/* 3. Interactive Image Gallery */}
+        <div className="relative h-[400px] md:h-[500px] mb-24 flex justify-center items-center group perspective-1000">
+          {/* Left Image Card */}
           <div
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full mx-auto mb-2 md:mb-4 flex items-center justify-center text-xl md:text-3xl"
-            style={{ background: COLORS.gradients.primary }}
+            className="absolute w-52 h-72 md:w-72 md:h-96 bg-zinc-800 rounded-2xl border-4 border-zinc-800/50 shadow-2xl overflow-hidden transform transition-all duration-500 ease-out
+            -rotate-6 -translate-x-12 md:-translate-x-32 translate-y-4 scale-90 z-10
+            hover:z-30 hover:scale-105 hover:rotate-0 hover:-translate-y-2 hover:border-amber-500/30 cursor-pointer"
           >
-            <MdEco className="text-white" />
+            <img
+              src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&h=800&fit=crop"
+              alt="Sustainable fabrics"
+              className="w-full h-full object-cover opacity-70 hover:opacity-100 transition-opacity duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-100 hover:opacity-0 transition-opacity duration-500" />
           </div>
-          <p className="text-xs md:text-sm">Sustainable Materials</p>
+
+          {/* Right Image Card */}
+          <div
+            className="absolute w-52 h-72 md:w-72 md:h-96 bg-zinc-800 rounded-2xl border-4 border-zinc-800/50 shadow-2xl overflow-hidden transform transition-all duration-500 ease-out
+            rotate-6 translate-x-12 md:translate-x-32 translate-y-4 scale-90 z-10
+            hover:z-30 hover:scale-105 hover:rotate-0 hover:-translate-y-2 hover:border-amber-500/30 cursor-pointer"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=800&fit=crop"
+              alt="Design studio"
+              className="w-full h-full object-cover opacity-70 hover:opacity-100 transition-opacity duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-100 hover:opacity-0 transition-opacity duration-500" />
+          </div>
+
+          {/* Center Main Image */}
+          <div
+            className="absolute w-60 h-80 md:w-80 md:h-[28rem] bg-zinc-800 rounded-2xl border-4 border-white/10 shadow-2xl overflow-hidden transform transition-all duration-500 ease-out
+            z-20 hover:scale-105 hover:border-white/30 hover:shadow-amber-500/20"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&h=800&fit=crop"
+              alt="Model wearing collection"
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
-        <div className="text-center">
-          <div
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full mx-auto mb-2 md:mb-4 flex items-center justify-center text-xl md:text-3xl"
-            style={{ background: COLORS.gradients.primary }}
-          >
-            <MdContentCut className="text-white" />
-          </div>
-          <p className="text-xs md:text-sm">Artisan Craftsmanship</p>
-        </div>
-        <div className="text-center">
-          <div
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full mx-auto mb-2 md:mb-4 flex items-center justify-center text-xl md:text-3xl"
-            style={{ background: COLORS.gradients.primary }}
-          >
-            <MdContentCut className="text-white" />
-          </div>
-          <p className="text-xs md:text-sm">Eco-Friendly Packaging</p>
-        </div>
-        <div className="text-center">
-          <div
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full mx-auto mb-2 md:mb-4 flex items-center justify-center text-xl md:text-3xl"
-            style={{ background: COLORS.gradients.primary }}
-          >
-            <MdStars className="text-white" />
-          </div>
-          <p className="text-xs md:text-sm">Personal Styling</p>
+
+        {/* 4. Features Grid (Inline Mapping) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {features.map((item) => (
+            <div
+              key={item.id}
+              className="group relative p-6 rounded-2xl bg-zinc-900/50 border border-white/5 hover:bg-zinc-800 hover:border-amber-500/30 transition-all duration-300 hover:-translate-y-2"
+            >
+              {/* Icon Circle */}
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center mb-5 shadow-lg shadow-amber-900/20 group-hover:scale-110 transition-transform duration-300">
+                {item.icon}
+              </div>
+
+              {/* Text Content */}
+              <h4 className="text-lg font-semibold text-white mb-2 font-serif tracking-wide">
+                {item.title}
+              </h4>
+              <p className="text-sm text-zinc-400 group-hover:text-zinc-300 leading-relaxed transition-colors">
+                {item.desc}
+              </p>
+
+              {/* Decorative Glow on Hover */}
+              <div className="absolute inset-0 rounded-2xl bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -1010,9 +1058,9 @@ const StoryImpact = () => {
   return (
     <section
       id="story"
-      className="grid md:grid-cols-2 gap-8 md:gap-16 px-4 md:px-16 py-12 md:py-20"
-      style={{ background: COLORS.gradients.light }}
+      className="bg-white grid md:grid-cols-2 gap-8 md:gap-16 px-4 md:px-16 py-12 md:py-20"
     >
+      {/* Images */}
       <div className="relative flex items-center justify-center">
         <div className="w-64 h-64 md:w-96 md:h-96 rounded-full overflow-hidden">
           <img
@@ -1021,8 +1069,9 @@ const StoryImpact = () => {
             className="w-full h-full object-cover"
           />
         </div>
+
         <div
-          className="absolute bottom-4 right-4 md:bottom-8 md:right-8 w-40 h-40 md:w-64 md:h-64 rounded-full overflow-hidden border-4 md:border-8 shadow-xl"
+          className="absolute bottom-4 right-4 md:bottom-8 md:right-8 w-40 h-40 md:w-64 md:h-64 rounded-full overflow-hidden border-4 md:border-8 shadow-xl bg-white"
           style={{ borderColor: COLORS.primary.tealLighter }}
         >
           <img
@@ -1033,6 +1082,7 @@ const StoryImpact = () => {
         </div>
       </div>
 
+      {/* Content */}
       <div className="flex flex-col justify-center">
         <h2 className="text-2xl md:text-4xl font-serif text-gray-800 mb-2">
           A Story Built on Impact
@@ -1040,6 +1090,7 @@ const StoryImpact = () => {
         <h2 className="text-2xl md:text-4xl font-serif text-gray-800 mb-4 md:mb-6">
           And Sustainability.
         </h2>
+
         <p className="text-gray-600 leading-relaxed mb-6 md:mb-10 text-sm md:text-base">
           Sourcing materials from ethical producers and supporting fair trade
           practices, we're committed to protecting our planet while dressing
@@ -1378,58 +1429,210 @@ const JourneyItem = ({
 
 // Journey Component
 const Journey = () => {
+  // --- Configuration ---
+  const COLORS = {
+    gradients: {
+      light: "linear-gradient(to bottom, #ffffff, #f9fafb)", // Clean white to light gray
+      primary: "linear-gradient(to bottom, #000000, #374151)", // Black to Gray
+    },
+  };
+
+  const journeyData = [
+    {
+      year: "2018",
+      title: "The Beginning",
+      description:
+        "Krambica began its journey in 2018 from a small underground space at our home in Vijayraja Nagar, Bhavnagar. What started as a boutique stocking selected products soon gained strong customer trust. Behind Krambica lies deep faith in Maa Ambica and love for Lord Krishna—the soul behind our name and values.",
+      image: "/journey/journey1.png",
+    },
+    {
+      year: "2019",
+      title: "Understanding the Market",
+      description:
+        "With growing demand and direct customer feedback, we stepped into trading and wholesaling. This phase helped us understand real market gaps—customers wanted comfortable, breathable, and reliable cotton wear at a fair price.",
+      image: "/journey/journey2.png",
+    },
+    {
+      year: "2021",
+      title: "Becoming a Manufacturer",
+      description:
+        "To maintain quality, consistency, and comfort, Krambica started its own manufacturing unit. Our focus became clear: Premium mul cotton fabric, honest pricing, and long-term trust with shopkeepers.",
+      image: "/journey/journey4.png",
+    },
+    {
+      year: "2023",
+      title: "Expanding Our Reach",
+      description:
+        "As our journey progressed, Krambica expanded its presence online and became available on Myntra, making our designs accessible to customers across India. While we continue to grow digitally, our core strength remains bulk supply directly to shops.",
+      image: "/banners/banner11.png",
+    },
+    {
+      year: "2024",
+      title: "First Brand Store",
+      description:
+        "After years of supplying directly to shops across India, Krambica opened its first exclusive brand store in Vadodara in December 2024. This marked a new chapter—bringing our manufacturing excellence directly to customers.",
+      image: "/journey/journey5.jpg",
+    },
+    {
+      year: "2025",
+      title: "Growing with Trust",
+      description:
+        "In March 2025, our second brand store opened at Parimal Chowk, Bhavnagar. Today, Krambica supplies directly to shops PAN India, with: No traders, No wholesalers, No resellers. Only direct manufacturer-to-shop relationships.",
+      image: "/journey/journey6.png",
+    },
+  ];
+
   return (
     <section
       id="journey"
-      className="px-4 md:px-16 py-12 md:py-20"
+      className="px-4 md:px-16 py-16 md:py-24 bg-gray-50 overflow-hidden"
       style={{ background: COLORS.gradients.light }}
     >
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-2xl md:text-4xl font-serif text-gray-800 mb-2 md:mb-4">
+        {/* --- Header --- */}
+        <div className="text-center mb-16 md:mb-24">
+          <span className="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase mb-3 block">
+            Our History
+          </span>
+          <h2 className="text-3xl md:text-5xl font-serif text-gray-900 mb-6">
             Our Journey
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
-            From a small studio to dressing thousands, here's how we grew while
-            staying true to our sustainable values
+          <div className="w-16 h-1 bg-black mx-auto mb-6"></div>
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-lg leading-relaxed">
+            From a small home-grown beginning to supplying premium mul cotton
+            wear across India, this is how Krambica grew—rooted in faith,
+            quality, and comfort.
           </p>
         </div>
 
+        {/* --- Timeline --- */}
         <div className="relative">
+          {/* Central Line (Desktop Only) */}
           <div
-            className="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-1 h-full"
+            className="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full opacity-20"
             style={{ background: COLORS.gradients.primary }}
           ></div>
 
-          <div className="space-y-8 md:space-y-24">
-            <JourneyItem
-              year="2018"
-              title="The Beginning"
-              description="Started with a passion for sustainable fashion and a small studio. Our first collection was born from the desire to make ethical clothing accessible."
-              image="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&h=350&fit=crop"
-              side="left"
-            />
-            <JourneyItem
-              year="2020"
-              title="Rapid Growth"
-              description="Expanded to serve 500+ customers monthly. Partnered with ethical factories to ensure fair labor practices and support artisan communities."
-              image="https://images.unsplash.com/photo-1445205170230-053b83016050?w=500&h=350&fit=crop"
-              side="right"
-            />
-            <JourneyItem
-              year="2022"
-              title="Sustainability Focus"
-              description="Achieved 100% sustainable packaging and carbon-neutral shipping. Our commitment to the environment became stronger than ever."
-              image="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=350&fit=crop"
-              side="left"
-            />
-            <JourneyItem
-              year="2025"
-              title="Today & Beyond"
-              description="Dressing 5,000+ happy customers with 50+ sustainable collections. Our journey continues as we innovate and grow while staying true to our roots."
-              image="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&h=350&fit=crop"
-              side="right"
-            />
+          <div className="space-y-12 md:space-y-0">
+            {journeyData.map((item, index) => {
+              const isEven = index % 2 === 0;
+
+              return (
+                <div
+                  key={index}
+                  className="relative flex flex-col md:flex-row items-center justify-between w-full md:mb-24 last:mb-0 group"
+                >
+                  {/* Mobile Left Line (Mobile Only) */}
+                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 md:hidden h-full z-0"></div>
+
+                  {/* =========================================================
+                      LEFT COLUMN
+                  ========================================================= */}
+                  <div className="w-full md:w-[45%] pl-12 md:pl-0 relative z-10 order-2 md:order-1">
+                    {/* Mobile View */}
+                    <div className="md:hidden pb-8">
+                      {/* Highlighted Mobile Year Badge */}
+                      <div className="absolute  top-0 flex items-center">
+                        <div className="w-16 h-8 bg-black ">
+                          <span className="text-white font-bold text-sm">
+                            {item.year}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-8">
+                        <h3 className="text-xl font-serif text-gray-900 mb-3 font-bold">
+                          {item.title}
+                        </h3>
+                        <div className="relative aspect-video w-full overflow-hidden rounded-lg shadow-sm mb-4">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Desktop View (Text Left) */}
+                    <div className="hidden md:block w-full text-right">
+                      {isEven ? (
+                        <div className="pr-12">
+                          {/* Highlighted Desktop Year */}
+                          <div className="flex justify-end mb-4">
+                            <span className="text-4xl font-serif font-bold text-black border-b-4 border-gray-200 pb-1 inline-block">
+                              {item.year}
+                            </span>
+                          </div>
+
+                          <h3 className="text-2xl font-serif text-gray-900 mb-4 font-bold">
+                            {item.title}
+                          </h3>
+                          <p className="text-gray-600 text-base leading-relaxed">
+                            {item.description}
+                          </p>
+                        </div>
+                      ) : (
+                        // Image Left
+                        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-lg border border-gray-100">
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 z-10" />
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* =========================================================
+                      CENTER DOT (Desktop Only)
+                  ========================================================= */}
+                  <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center justify-center w-4 h-4 rounded-full bg-white border-4 border-black z-20 order-1 md:order-2 shadow-sm"></div>
+
+                  {/* Mobile Dot (Mobile Only) */}
+                  <div className="absolute left-[13px] top-[14px] w-3 h-3 rounded-full bg-black border-2 border-white md:hidden z-20"></div>
+
+                  {/* =========================================================
+                      RIGHT COLUMN
+                  ========================================================= */}
+                  <div className="w-full md:w-[45%] pl-12 md:pl-0 relative z-10 order-3 md:order-3 hidden md:block">
+                    {isEven ? (
+                      // Image Right
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-lg border border-gray-100">
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 z-10" />
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                        />
+                      </div>
+                    ) : (
+                      // Text Right
+                      <div className="pl-12 text-left">
+                        {/* Highlighted Desktop Year */}
+                        <div className="flex justify-start mb-4">
+                          <span className="text-4xl font-serif font-bold text-black border-b-4 border-gray-200 pb-1 inline-block">
+                            {item.year}
+                          </span>
+                        </div>
+
+                        <h3 className="text-2xl font-serif text-gray-900 mb-4 font-bold">
+                          {item.title}
+                        </h3>
+                        <p className="text-gray-600 text-base leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -1560,327 +1763,356 @@ const Collections = () => {
 };
 
 // Customer Reviews Slider Component
-const CustomerReviews = () => {
-  const [currentReview, setCurrentReview] = useState(0);
+// const CustomerReviews = () => {
+//   const [currentReview, setCurrentReview] = useState(0);
 
-  const reviews = [
-    {
-      name: "Sarah Johnson",
-      role: "Fashion Blogger",
-      review:
-        "The quality and comfort of StyleThread clothing is unmatched. Finally found sustainable fashion that doesn't compromise on style!",
-      rating: 5,
-      image:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&h=400&q=80",
-    },
-    {
-      name: "Michael Chen",
-      role: "Environmental Activist",
-      review:
-        "As someone who cares deeply about sustainability, I appreciate StyleThread's commitment to ethical production and quality materials.",
-      rating: 5,
-      image:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&h=400&q=80",
-    },
-    {
-      name: "Emma Rodriguez",
-      role: "Marketing Director",
-      review:
-        "Every piece I've purchased from StyleThread has exceeded my expectations. The fit, comfort, and style are perfect for my professional life.",
-      rating: 5,
-      image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=400&h=400&q=80",
-    },
-    {
-      name: "David Park",
-      role: "Software Engineer",
-      review:
-        "Comfortable, stylish, and sustainable - exactly what I was looking for. The quality is evident in every stitch.",
-      rating: 5,
-      image:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&h=400&q=80",
-    },
-    {
-      name: "Lisa Thompson",
-      role: "University Professor",
-      review:
-        "StyleThread understands that comfort doesn't have to be boring. Their pieces are both practical and fashionable.",
-      rating: 5,
-      image:
-        "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=400&h=400&q=80",
-    },
-  ];
+//   const reviews = [
+//     {
+//       name: "Sarah Johnson",
+//       role: "Fashion Blogger",
+//       review:
+//         "The quality and comfort of StyleThread clothing is unmatched. Finally found sustainable fashion that doesn't compromise on style!",
+//       rating: 5,
+//       image:
+//         "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&h=400&q=80",
+//     },
+//     {
+//       name: "Michael Chen",
+//       role: "Environmental Activist",
+//       review:
+//         "As someone who cares deeply about sustainability, I appreciate StyleThread's commitment to ethical production and quality materials.",
+//       rating: 5,
+//       image:
+//         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&h=400&q=80",
+//     },
+//     {
+//       name: "Emma Rodriguez",
+//       role: "Marketing Director",
+//       review:
+//         "Every piece I've purchased from StyleThread has exceeded my expectations. The fit, comfort, and style are perfect for my professional life.",
+//       rating: 5,
+//       image:
+//         "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=400&h=400&q=80",
+//     },
+//     {
+//       name: "David Park",
+//       role: "Software Engineer",
+//       review:
+//         "Comfortable, stylish, and sustainable - exactly what I was looking for. The quality is evident in every stitch.",
+//       rating: 5,
+//       image:
+//         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&h=400&q=80",
+//     },
+//     {
+//       name: "Lisa Thompson",
+//       role: "University Professor",
+//       review:
+//         "StyleThread understands that comfort doesn't have to be boring. Their pieces are both practical and fashionable.",
+//       rating: 5,
+//       image:
+//         "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=400&h=400&q=80",
+//     },
+//   ];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentReview((prev) => (prev + 1) % reviews.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+//   useEffect(() => {
+//     const interval = setInterval(() => {
+//       setCurrentReview((prev) => (prev + 1) % reviews.length);
+//     }, 5000);
+//     return () => clearInterval(interval);
+//   }, []);
 
-  const nextReview = () =>
-    setCurrentReview((prev) => (prev + 1) % reviews.length);
-  const prevReview = () =>
-    setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
+//   const nextReview = () =>
+//     setCurrentReview((prev) => (prev + 1) % reviews.length);
+//   const prevReview = () =>
+//     setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
 
-  return (
-    <section
-      className="px-4 sm:px-6 md:px-16 py-12 sm:py-16 md:py-24"
-      style={{ background: COLORS.gradients.light }}
-    >
-      <div className="max-w-6xl mx-auto">
-        {/* Section Header - Mobile Optimized */}
-        <div className="text-center mb-10 sm:mb-14 md:mb-20">
-          <div
-            className="inline-flex items-center gap-2 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full mb-4 sm:mb-6 text-xs sm:text-sm"
-            style={{
-              background: "rgba(13, 148, 136, 0.1)",
-              border: "1px solid rgba(13, 148, 136, 0.2)",
-            }}
-          >
-            <FaStar
-              className="w-3 h-3 sm:w-4 sm:h-4"
-              style={{ color: COLORS.primary.teal }}
-            />
-            <span
-              className="font-semibold"
-              style={{ color: COLORS.primary.teal }}
-            >
-              TESTIMONIALS
-            </span>
-          </div>
+//   return (
+//     <section
+//       className="px-4 sm:px-6 md:px-16 py-12 sm:py-16 md:py-24"
+//       style={{ background: COLORS.gradients.light }}
+//     >
+//       <div className="max-w-6xl mx-auto">
+//         {/* Section Header - Mobile Optimized */}
+//         <div className="text-center mb-10 sm:mb-14 md:mb-20">
+//           <div
+//             className="inline-flex items-center gap-2 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full mb-4 sm:mb-6 text-xs sm:text-sm"
+//             style={{
+//               background: "rgba(13, 148, 136, 0.1)",
+//               border: "1px solid rgba(13, 148, 136, 0.2)",
+//             }}
+//           >
+//             <FaStar
+//               className="w-3 h-3 sm:w-4 sm:h-4"
+//               style={{ color: COLORS.primary.teal }}
+//             />
+//             <span
+//               className="font-semibold"
+//               style={{ color: COLORS.primary.teal }}
+//             >
+//               TESTIMONIALS
+//             </span>
+//           </div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-serif text-gray-900 mb-3 sm:mb-4">
-            Loved by <span className="italic">Our Customers</span>
-          </h2>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-2">
-            Don't just take our word for it. Hear from people who've experienced
-            StyleThread firsthand.
-          </p>
-        </div>
+//           <h2 className="text-2xl sm:text-3xl md:text-5xl font-serif text-gray-900 mb-3 sm:mb-4">
+//             Loved by <span className="italic">Our Customers</span>
+//           </h2>
+//           <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-2">
+//             Don't just take our word for it. Hear from people who've experienced
+//             StyleThread firsthand.
+//           </p>
+//         </div>
 
-        {/* Main Review Card - Mobile Optimized */}
-        <div className="relative mb-10 sm:mb-14 md:mb-20">
-          <div className="relative">
-            {/* Background Decorative Elements - Hidden on Mobile */}
-            <div
-              className="hidden md:block absolute -top-6 -left-6 w-32 h-32 rounded-full opacity-20"
-              style={{ background: COLORS.gradients.primary }}
-            ></div>
-            <div
-              className="hidden md:block absolute -bottom-6 -right-6 w-40 h-40 rounded-full opacity-20"
-              style={{ background: COLORS.gradients.primary }}
-            ></div>
+//         {/* Main Review Card - Mobile Optimized */}
+//         <div className="relative mb-10 sm:mb-14 md:mb-20">
+//           <div className="relative">
+//             {/* Background Decorative Elements - Hidden on Mobile */}
+//             <div
+//               className="hidden md:block absolute -top-6 -left-6 w-32 h-32 rounded-full opacity-20"
+//               style={{ background: COLORS.gradients.primary }}
+//             ></div>
+//             <div
+//               className="hidden md:block absolute -bottom-6 -right-6 w-40 h-40 rounded-full opacity-20"
+//               style={{ background: COLORS.gradients.primary }}
+//             ></div>
 
-            {/* Main Card - Stacked on Mobile */}
-            <div className="relative bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl">
-              {/* Mobile: Image Top, Content Bottom */}
-              <div className="md:flex">
-                {/* Left Side - Customer Image - Mobile Full Width */}
-                <div className="md:w-2/5 relative">
-                  <div className="h-48 sm:h-56 md:h-full relative overflow-hidden">
-                    <img
-                      src={reviews[currentReview].image}
-                      alt={reviews[currentReview].name}
-                      className="w-full h-full object-cover transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent md:from-black/20"></div>
+//             {/* Main Card - Stacked on Mobile */}
+//             <div className="relative bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl">
+//               {/* Mobile: Image Top, Content Bottom */}
+//               <div className="md:flex">
+//                 {/* Left Side - Customer Image - Mobile Full Width */}
+//                 <div className="md:w-2/5 relative">
+//                   <div className="h-48 sm:h-56 md:h-full relative overflow-hidden">
+//                     <img
+//                       src={reviews[currentReview].image}
+//                       alt={reviews[currentReview].name}
+//                       className="w-full h-full object-cover transition-transform duration-500"
+//                     />
+//                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent md:from-black/20"></div>
 
-                    {/* Floating Rating Badge - Mobile Smaller */}
-                    <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-lg">
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <FaStar
-                              key={i}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-amber-400 fill-amber-400"
-                            />
-                          ))}
-                        </div>
-                        <span className="text-base sm:text-lg font-bold text-gray-900">
-                          5.0
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+//                     {/* Floating Rating Badge - Mobile Smaller */}
+//                     <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-lg">
+//                       <div className="flex items-center gap-1 sm:gap-2">
+//                         <div className="flex">
+//                           {[...Array(5)].map((_, i) => (
+//                             <FaStar
+//                               key={i}
+//                               className="w-3 h-3 sm:w-4 sm:h-4 text-amber-400 fill-amber-400"
+//                             />
+//                           ))}
+//                         </div>
+//                         <span className="text-base sm:text-lg font-bold text-gray-900">
+//                           5.0
+//                         </span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
 
-                {/* Right Side - Review Content - Mobile Optimized */}
-                <div className="md:w-3/5 p-5 sm:p-8 md:p-12">
-                  {/* Quote Icon - Mobile Smaller */}
-                  <div className="mb-4 sm:mb-6">
-                    <div
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6"
-                      style={{ background: COLORS.gradients.primary }}
-                    >
-                      <svg
-                        className="w-6 h-6 sm:w-8 sm:h-8 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                      </svg>
-                    </div>
-                  </div>
+//                 {/* Right Side - Review Content - Mobile Optimized */}
+//                 <div className="md:w-3/5 p-5 sm:p-8 md:p-12">
+//                   {/* Quote Icon - Mobile Smaller */}
+//                   <div className="mb-4 sm:mb-6">
+//                     <div
+//                       className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6"
+//                       style={{ background: COLORS.gradients.primary }}
+//                     >
+//                       <svg
+//                         className="w-6 h-6 sm:w-8 sm:h-8 text-white"
+//                         fill="currentColor"
+//                         viewBox="0 0 24 24"
+//                       >
+//                         <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+//                       </svg>
+//                     </div>
+//                   </div>
 
-                  {/* Review Text - Mobile Smaller */}
-                  <p className="text-lg sm:text-xl md:text-2xl leading-relaxed sm:leading-relaxed text-gray-800 mb-6 sm:mb-8 font-light">
-                    "{reviews[currentReview].review}"
-                  </p>
+//                   {/* Review Text - Mobile Smaller */}
+//                   <p className="text-lg sm:text-xl md:text-2xl leading-relaxed sm:leading-relaxed text-gray-800 mb-6 sm:mb-8 font-light">
+//                     "{reviews[currentReview].review}"
+//                   </p>
 
-                  {/* Customer Info - Mobile Optimized */}
-                  <div className="border-t border-gray-100 pt-6 sm:pt-8">
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">
-                      {reviews[currentReview].name}
-                    </h3>
-                    <p className="text-gray-600 text-sm sm:text-base">
-                      {reviews[currentReview].role}
-                    </p>
-                  </div>
+//                   {/* Customer Info - Mobile Optimized */}
+//                   <div className="border-t border-gray-100 pt-6 sm:pt-8">
+//                     <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">
+//                       {reviews[currentReview].name}
+//                     </h3>
+//                     <p className="text-gray-600 text-sm sm:text-base">
+//                       {reviews[currentReview].role}
+//                     </p>
+//                   </div>
 
-                  {/* Review Counter - Mobile Smaller */}
-                  <div className="mt-6 text-xs sm:text-sm text-gray-500">
-                    Review {currentReview + 1} of {reviews.length}
-                  </div>
-                </div>
-              </div>
-            </div>
+//                   {/* Review Counter - Mobile Smaller */}
+//                   <div className="mt-6 text-xs sm:text-sm text-gray-500">
+//                     Review {currentReview + 1} of {reviews.length}
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
 
-            {/* Navigation Buttons - Mobile Optimized */}
-            <button
-              onClick={prevReview}
-              className="absolute -left-2 sm:-left-4 md:-left-6 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-14 md:h-14 bg-white rounded-full shadow-lg sm:shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 z-10 group"
-              style={{ border: `2px solid ${COLORS.primary.tealLight}` }}
-            >
-              <IoChevronBack className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-700 group-hover:scale-110 transition-transform" />
-            </button>
-            <button
-              onClick={nextReview}
-              className="absolute -right-2 sm:-right-4 md:-right-6 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-14 md:h-14 bg-white rounded-full shadow-lg sm:shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 z-10 group"
-              style={{ border: `2px solid ${COLORS.primary.tealLight}` }}
-            >
-              <IoChevronForward className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-700 group-hover:scale-110 transition-transform" />
-            </button>
-          </div>
-        </div>
+//             {/* Navigation Buttons - Mobile Optimized */}
+//             <button
+//               onClick={prevReview}
+//               className="absolute -left-2 sm:-left-4 md:-left-6 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-14 md:h-14 bg-white rounded-full shadow-lg sm:shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 z-10 group"
+//               style={{ border: `2px solid ${COLORS.primary.tealLight}` }}
+//             >
+//               <IoChevronBack className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-700 group-hover:scale-110 transition-transform" />
+//             </button>
+//             <button
+//               onClick={nextReview}
+//               className="absolute -right-2 sm:-right-4 md:-right-6 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-14 md:h-14 bg-white rounded-full shadow-lg sm:shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 z-10 group"
+//               style={{ border: `2px solid ${COLORS.primary.tealLight}` }}
+//             >
+//               <IoChevronForward className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-700 group-hover:scale-110 transition-transform" />
+//             </button>
+//           </div>
+//         </div>
 
-        {/* Review Thumbnails - Mobile Optimized */}
-        <div className="flex justify-center gap-3 sm:gap-4 mb-8 sm:mb-12 overflow-x-auto py-2 px-2 -mx-2">
-          {reviews.map((review, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentReview(index)}
-              className={`flex-shrink-0 relative transition-all duration-300 ${
-                index === currentReview
-                  ? "scale-105 sm:scale-110"
-                  : "opacity-70 hover:opacity-100"
-              }`}
-            >
-              <div className="relative">
-                <img
-                  src={review.image}
-                  alt={review.name}
-                  className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full object-cover border-3 sm:border-4 transition-all ${
-                    index === currentReview
-                      ? "border-white shadow-lg sm:shadow-xl"
-                      : "border-transparent"
-                  }`}
-                  style={{
-                    borderColor:
-                      index === currentReview ? COLORS.primary.teal : undefined,
-                  }}
-                />
-                {index === currentReview && (
-                  <div
-                    className="absolute inset-0 rounded-full animate-ping"
-                    style={{ background: COLORS.primary.teal, opacity: 0.3 }}
-                  ></div>
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
+//         {/* Review Thumbnails - Mobile Optimized */}
+//         <div className="flex justify-center gap-3 sm:gap-4 mb-8 sm:mb-12 overflow-x-auto py-2 px-2 -mx-2">
+//           {reviews.map((review, index) => (
+//             <button
+//               key={index}
+//               onClick={() => setCurrentReview(index)}
+//               className={`flex-shrink-0 relative transition-all duration-300 ${
+//                 index === currentReview
+//                   ? "scale-105 sm:scale-110"
+//                   : "opacity-70 hover:opacity-100"
+//               }`}
+//             >
+//               <div className="relative">
+//                 <img
+//                   src={review.image}
+//                   alt={review.name}
+//                   className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full object-cover border-3 sm:border-4 transition-all ${
+//                     index === currentReview
+//                       ? "border-white shadow-lg sm:shadow-xl"
+//                       : "border-transparent"
+//                   }`}
+//                   style={{
+//                     borderColor:
+//                       index === currentReview ? COLORS.primary.teal : undefined,
+//                   }}
+//                 />
+//                 {index === currentReview && (
+//                   <div
+//                     className="absolute inset-0 rounded-full animate-ping"
+//                     style={{ background: COLORS.primary.teal, opacity: 0.3 }}
+//                   ></div>
+//                 )}
+//               </div>
+//             </button>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
 
 // AboutPage Component
 const AboutPage = () => {
   return (
-    <section id="about" className="px-4 md:px-16 py-12 md:py-20 bg-white">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12 md:mb-16">
-          <h1 className="text-3xl md:text-5xl font-serif text-gray-800 mb-4 md:mb-6">
-            About StyleThread
+    <section id="about" className="bg-white w-full">
+      <div className="max-w-7xl mx-auto px-6 py-16 md:px-12 md:py-24">
+        {/* Header Section */}
+        <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24">
+          <h1 className="text-4xl md:text-6xl font-serif text-gray-900 mb-6 tracking-tight">
+            About Krambica
           </h1>
-          <p className="text-gray-600 max-w-3xl mx-auto text-sm md:text-base leading-relaxed">
-            Founded on the principles of sustainability and style, StyleThread
-            redefines fashion by merging ethical practices with contemporary
-            design. Our journey began with a simple idea: fashion shouldn't cost
-            the earth.
+          <div className="w-24 h-1 bg-gray-900 mx-auto mb-8"></div>
+          <p className="text-gray-600 text-lg md:text-xl leading-relaxed font-light">
+            Founded in 2018, Krambica has evolved into a premium women's wear
+            brand, blending traditional elegance with contemporary design. With
+            stores in Vadodara and Bhavnagar, our journey began with a simple
+            promise: to deliver exceptional quality and timeless style.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 md:gap-12 mb-12 md:mb-16">
-          <div
-            className="rounded-2xl p-6 md:p-8 border-2"
-            style={{
-              background: COLORS.gradients.light,
-              borderColor: COLORS.primary.tealLight,
-            }}
-          >
-            <h3 className="text-xl md:text-2xl font-serif text-gray-800 mb-4">
+        {/* Vision & Values Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-20">
+          {/* Vision Card */}
+          <div className="bg-gray-50 rounded-xl p-8 md:p-12 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
+              <Leaf className="w-6 h-6 text-gray-900" />
+            </div>
+            <h3 className="text-2xl md:text-3xl font-serif text-gray-900 mb-4">
               Our Vision
             </h3>
-            <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-              To create a world where sustainable fashion is the norm, not the
-              exception. We envision a future where every garment tells a story
-              of ethical craftsmanship and environmental responsibility.
+            <p className="text-gray-600 leading-relaxed">
+              To be the preferred choice for the modern woman who values
+              authenticity. We envision a future where every garment tells a
+              story of ethical craftsmanship, empowering both the weaver and the
+              wearer.
             </p>
           </div>
-          <div
-            className="rounded-2xl p-6 md:p-8 border-2"
-            style={{
-              background: COLORS.gradients.light,
-              borderColor: COLORS.primary.tealLight,
-            }}
-          >
-            <h3 className="text-xl md:text-2xl font-serif text-gray-800 mb-4">
+
+          {/* Values Card */}
+          <div className="bg-gray-50 rounded-xl p-8 md:p-12 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
+              <Check className="w-6 h-6 text-gray-900" />
+            </div>
+            <h3 className="text-2xl md:text-3xl font-serif text-gray-900 mb-4">
               Our Values
             </h3>
-            <ul className="text-gray-600 text-sm md:text-base space-y-2">
+            <ul className="space-y-4">
               {[
-                "Ethical Production",
-                "Sustainable Materials",
-                "Transparent Supply Chain",
-                "Community Empowerment",
+                "Premium Fabric Quality",
+                "Authentic Craftsmanship",
+                "Customer-Centric Service",
+                "Timeless Elegance",
               ].map((value, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span style={{ color: COLORS.primary.teal }}>✓</span>
-                  <span>{value}</span>
+                <li
+                  key={index}
+                  className="flex items-center gap-3 text-gray-700"
+                >
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full border border-gray-900 flex items-center justify-center">
+                    <span className="w-2.5 h-2.5 bg-gray-900 rounded-full"></span>
+                  </span>
+                  <span className="font-medium">{value}</span>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {[
-            { number: "5,000+", label: "Happy Customers" },
-            { number: "50+", label: "Collections" },
-            { number: "100%", label: "Sustainable Packaging" },
-          ].map((stat, index) => (
-            <div key={index} className="text-center">
-              <div
-                className="text-3xl md:text-4xl font-bold mb-2"
-                style={{ color: COLORS.primary.teal }}
-              >
-                {stat.number}
+        {/* Stats Section */}
+        <div className="border-t border-b border-gray-100 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div className="space-y-2">
+              <div className="flex justify-center mb-2">
+                <Users className="w-6 h-6 text-gray-400" />
               </div>
-              <p className="text-gray-600 text-sm">{stat.label}</p>
+              <div className="text-4xl md:text-5xl font-serif font-bold text-gray-900">
+                5,000+
+              </div>
+              <p className="text-gray-500 font-medium uppercase tracking-wider text-sm">
+                Happy Customers
+              </p>
             </div>
-          ))}
+
+            <div className="space-y-2 md:border-l md:border-r border-gray-100">
+              <div className="flex justify-center mb-2">
+                <ShoppingBag className="w-6 h-6 text-gray-400" />
+              </div>
+              <div className="text-4xl md:text-5xl font-serif font-bold text-gray-900">
+                50+
+              </div>
+              <p className="text-gray-500 font-medium uppercase tracking-wider text-sm">
+                Exclusive Collections
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-center mb-2">
+                <Leaf className="w-6 h-6 text-gray-400" />
+              </div>
+              <div className="text-4xl md:text-5xl font-serif font-bold text-gray-900">
+                2018
+              </div>
+              <p className="text-gray-500 font-medium uppercase tracking-wider text-sm">
+                Established
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -2055,8 +2287,8 @@ const App = () => {
       <VideoSection />
       <Journey />
       <AboutPage />
-      <CustomerReviews />
-      <CTA />
+      {/* <CustomerReviews /> */}
+      {/* <CTA /> */}
     </div>
   );
 };

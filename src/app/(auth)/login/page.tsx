@@ -142,11 +142,6 @@ export default function LoginPage() {
         {/* --- RIGHT SIDE: Login Form --- */}
         <div className="w-full lg:w-1/2 xl:w-[45%] flex flex-col relative bg-white h-full overflow-y-auto custom-scrollbar">
           {/* Logo */}
-          <div className="absolute top-8 left-8 lg:top-10 lg:left-12 z-20">
-            <span className="font-serif text-2xl font-bold text-emerald-950 tracking-wide cursor-pointer">
-              Krambica.
-            </span>
-          </div>
 
           <div className="flex-1 flex flex-col justify-center items-center px-6 sm:px-12 lg:px-20 xl:px-28 py-20">
             <div className="w-full max-w-[440px] space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

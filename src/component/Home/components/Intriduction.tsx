@@ -1,4 +1,9 @@
+"use client";
+import { Link } from "lucide-react";
+import { useRouter } from "next/navigation";
+
 const IntroSection = () => {
+  const router = useRouter();
   return (
     <div className="container mx-auto px-4 py-8 lg:py-16">
       <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-8 items-center">
@@ -9,12 +14,14 @@ const IntroSection = () => {
             </p>
             <h1 className="text-4xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-r from-[#115e59] to-[#134e4a] bg-clip-text text-transparent mb-4 leading-tight font-serif">
               KRAMBICA KURTI
-              <span className="text-2xl lg:text-3xl align-top">™</span>
             </h1>
           </div>
 
           <div className="flex justify-center lg:justify-start">
-            <button className="bg-gradient-to-r from-[#115e59] to-[#134e4a] text-white px-8 lg:px-12 py-4 lg:py-5 text-sm lg:text-base font-semibold uppercase rounded-none hover:shadow-lg transition-all duration-300 hover:scale-105 shadow-lg">
+            <button
+              className="bg-gradient-to-r from-[#115e59] to-[#134e4a] text-white px-8 lg:px-12 py-4 lg:py-5 text-sm lg:text-base font-semibold uppercase rounded-none hover:shadow-lg transition-all duration-300 hover:scale-105 shadow-lg"
+              onClick={() => router.push("/shop")}
+            >
               Shop All Kurtis
             </button>
           </div>

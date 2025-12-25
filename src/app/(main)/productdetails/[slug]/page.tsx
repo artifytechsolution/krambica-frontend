@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@src/redux/store";
 import { addToCart, selectUser } from "@src/redux/reducers/authSlice";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -26,6 +26,8 @@ import {
   Sparkles,
   Tag,
   Package,
+  Ruler,
+  Info, // Added for size chart icon
 } from "lucide-react";
 import {
   FaFacebookF,
@@ -147,6 +149,202 @@ const useSubmitReview = () => {
         throw error;
       }
     }
+  );
+};
+
+// ============================================
+// MOBILE-FRIENDLY SIZE CHART MODAL
+// ============================================
+const SizeChartModal = ({ isOpen, onClose, productCategory, productName }) => {
+  const chartRef = useRef(null);
+
+  if (!isOpen) return null;
+
+  const getSizeChartData = () => {
+    const category = (productCategory || "").toLowerCase();
+
+    // Custom logic for Krambica (Ethnic/Kurtis focus)
+    if (
+      category.includes("kurti") ||
+      category.includes("set") ||
+      category.includes("ethnic")
+    ) {
+      return {
+        title: "Ethnic Wear Guide (Inches)",
+        measurements: ["Size", "Bust", "Waist", "Hip", "Length"],
+        sizes: [
+          { size: "XS", bust: "34", waist: "30", hip: "36", length: "42" },
+          { size: "S", bust: "36", waist: "32", hip: "38", length: "42" },
+          { size: "M", bust: "38", waist: "34", hip: "40", length: "44" },
+          { size: "L", bust: "40", waist: "36", hip: "42", length: "44" },
+          { size: "XL", bust: "42", waist: "38", hip: "44", length: "46" },
+          { size: "XXL", bust: "44", waist: "40", hip: "46", length: "46" },
+        ],
+      };
+    }
+    // Default Fallback
+    return {
+      title: "Standard Guide (Inches)",
+      measurements: ["Size", "Chest", "Waist", "Hip"],
+      sizes: [
+        { size: "S", chest: "36", waist: "30", hip: "38" },
+        { size: "M", chest: "38", waist: "32", hip: "40" },
+        { size: "L", chest: "40", waist: "34", hip: "42" },
+        { size: "XL", chest: "42", waist: "36", hip: "44" },
+      ],
+    };
+  };
+
+  const sizeChart = getSizeChartData();
+
+  const handleDownload = () => {
+    const content = chartRef.current;
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Size Guide - ${productName}</title>
+          <style>
+            body { font-family: sans-serif; padding: 40px; color: #4b5563; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background: #f9fafb; text-align: left; padding: 12px; border-bottom: 2px solid #e5e7eb; text-transform: uppercase; font-size: 12px; }
+            td { padding: 12px; border-bottom: 1px solid #f3f4f6; }
+            h1 { color: #111827; font-size: 24px; }
+          </style>
+        </head>
+        <body>
+          <h1>${productName} Size Guide</h1>
+          <p>Krambica® Artisanal Excellence</p>
+          ${content.querySelector("table").outerHTML}
+          <p style="margin-top: 30px; font-size: 12px; color: #9ca3af;">Generated on ${new Date().toLocaleDateString()}</p>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 bg-stone-900/40 backdrop-blur-md z-[100] transition-opacity"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 z-[101] flex items-center justify-center p-4">
+        <div className="bg-white rounded-[2rem] max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl flex flex-col border border-stone-100">
+          {/* Header */}
+          <div className="px-8 py-6 border-b border-stone-50 flex justify-between items-center bg-white sticky top-0 z-10">
+            <div>
+              <h3 className="text-xl font-serif text-gray-900">
+                Measurement Guide
+              </h3>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mt-1">
+                {productName || "Product"} — {sizeChart.title}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-stone-50 rounded-full text-stone-400 hover:text-stone-900 transition-all"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="overflow-y-auto p-8 custom-scrollbar" ref={chartRef}>
+            {/* Measurement Tips */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center shrink-0">
+                  <Ruler size={18} className="text-gray-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-1">
+                    How to measure
+                  </h4>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Measure around the fullest part of your body while keeping
+                    the tape horizontal.
+                  </p>
+                </div>
+              </div>
+              <div className="bg-stone-50/50 p-4 rounded-2xl border border-stone-100">
+                <div className="flex items-center gap-2 text-gray-900 mb-1">
+                  <Info size={14} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                    Size Tip
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 font-light">
+                  If you're between sizes, we suggest choosing the larger size
+                  for a relaxed ethnic fit.
+                </p>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto mb-8">
+              <table className="w-full text-left">
+                <thead>
+                  <tr>
+                    {sizeChart.measurements.map((m) => (
+                      <th
+                        key={m}
+                        className="pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b border-stone-100"
+                      >
+                        {m}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-50 text-gray-600">
+                  {sizeChart.sizes.map((row, i) => (
+                    <tr
+                      key={i}
+                      className="hover:bg-stone-50/50 transition-colors group"
+                    >
+                      {sizeChart.measurements.map((m) => (
+                        <td
+                          key={m}
+                          className="py-4 text-sm font-light group-first:pt-6"
+                        >
+                          {row[m.toLowerCase()] || row.size}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Quality Note */}
+            <div className="flex items-center gap-3 p-4 bg-[#F9F9F7] rounded-xl border border-stone-100">
+              <Check size={16} className="text-gray-900" />
+              <p className="text-[10px] text-gray-500 font-medium uppercase tracking-widest leading-loose">
+                All garments are pre-washed to minimize shrinkage.
+              </p>
+            </div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="p-8 border-t border-stone-50 bg-white grid grid-cols-2 gap-4">
+            <button
+              onClick={onClose}
+              className="px-6 py-4 rounded-full border border-stone-200 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all"
+            >
+              Close Guide
+            </button>
+            <button
+              onClick={handleDownload}
+              className="flex items-center justify-center gap-3 px-6 py-4 rounded-full bg-gray-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg shadow-stone-100"
+            >
+              <Download size={16} />
+              Download Guide
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 
@@ -1193,10 +1391,10 @@ const BenefitsBadges = () => (
       <div className="p-1.5 bg-amber-100 rounded-lg">
         <Shield className="w-4 h-4 text-amber-600" />
       </div>
-      <div>
+      {/* <div>
         <p className="text-xs font-medium text-gray-900">1 Year Warranty</p>
         <p className="text-[10px] text-gray-500">Full coverage</p>
-      </div>
+      </div> */}
     </div>
 
     <div className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-2">
@@ -1240,6 +1438,7 @@ const ProductPage = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [mainImageLoaded, setMainImageLoaded] = useState(false);
+  const [showSizeChart, setShowSizeChart] = useState(false); // Added state for size chart
 
   const [reviews, setReviews] = useState([]);
   const [totalReviews, setTotalReviews] = useState(0);
@@ -1765,11 +1964,11 @@ const ProductPage = () => {
                       : "bg-white text-gray-700 border-gray-200"
                   }`}
                 >
-                  <Heart
+                  {/* <Heart
                     className={`w-3 h-3 sm:w-4 sm:h-4 ${
                       isWishlisted ? "fill-red-500" : ""
                     }`}
-                  />
+                  /> */}
                 </button>
               </div>
             </div>
@@ -1911,7 +2110,11 @@ const ProductPage = () => {
               <div className="mb-6 sm:mb-8">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-sm sm:text-base">Size</span>
-                  <button className="text-xs sm:text-sm text-blue-600 hover:underline">
+                  <button
+                    onClick={() => setShowSizeChart(true)}
+                    className="text-xs sm:text-sm text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    <Ruler className="w-3 h-3" />
                     Size Guide
                   </button>
                 </div>
@@ -1975,12 +2178,12 @@ const ProductPage = () => {
                     <span className="text-gray-900 ml-1">{product.fabric}</span>
                   </div>
                 )}
-                {product.sku && (
+                {/* {product.sku && (
                   <div className="text-xs sm:text-sm">
                     <span className="text-gray-600">SKU:</span>
                     <span className="text-gray-900 ml-1">{product.sku}</span>
                   </div>
-                )}
+                )} */}
               </div>
               {product.careInstructions && (
                 <div className="mt-2 text-xs sm:text-sm">
@@ -2274,6 +2477,13 @@ const ProductPage = () => {
         productName={product?.name || ""}
         productId={slug}
         onReviewSubmitted={refreshReviews}
+      />
+
+      <SizeChartModal
+        isOpen={showSizeChart}
+        onClose={() => setShowSizeChart(false)}
+        productCategory={product?.category?.name || ""}
+        productName={product?.name || ""}
       />
 
       {showGalleryModal && (

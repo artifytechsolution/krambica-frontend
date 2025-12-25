@@ -78,7 +78,7 @@ export const useCategoryList = () => {
       url,
       data,
     });
-    console.log("API Response:", response);
+    console.log("API   useCategoryListResponse:", response);
     return response;
   });
 };

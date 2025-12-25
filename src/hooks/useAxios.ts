@@ -44,7 +44,7 @@ const useAxios = () => {
           if (axiosError.code === "ERR_NETWORK") {
             dispatch(removeAuthToken());
             dispatch(removeUser());
-            router.push("/");
+            router.push("/login");
             toast.error(
               "Server is under maintenance mode. Please try again later."
             );
