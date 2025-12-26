@@ -66,8 +66,8 @@ const ContactPage = () => {
               <span className="italic text-emerald-800">conversation.</span>
             </h1>
             <p className="text-lg text-slate-600 max-w-md leading-relaxed">
-              From Bhavnagar to Baroda, we are here to assist you with your
-              fashion inquiries and orders.
+              We’re here to help with product details, orders, and wholesale
+              enquiries—feel free to reach out.
             </p>
           </div>
 
@@ -156,7 +156,7 @@ const ContactPage = () => {
                       Chat on WhatsApp
                     </h3>
                     <p className="text-xs text-emerald-800">
-                      Instant response (9am - 9pm)
+                      Instant response 10.30am to 7.30 pm IST
                     </p>
                   </div>
                 </div>
