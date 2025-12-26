@@ -1,6 +1,7 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
+import { useReactToPrint } from "react-to-print"; // Import for printing
 import {
   MapPin,
   Phone,
@@ -25,13 +26,246 @@ import {
   Hash,
   Image as ImageIcon,
   Search,
+  Printer,
 } from "lucide-react";
 
-// --- REDUX IMPORTS ---
+// --- REDUX IMPORTS (Keep your existing imports) ---
 import { useAppSelector } from "@src/redux/store";
 import { selectUser } from "@src/redux/reducers/authSlice";
 
-// --- HELPER COMPONENTS ---
+// ==========================================
+// 1. PROFESSIONAL INVOICE TEMPLATE COMPONENT
+// ==========================================
+const InvoiceTemplate = React.forwardRef(({ order }, ref) => {
+  if (!order) return null;
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+    }).format(amount);
+  };
+
+  return (
+    <div
+      ref={ref}
+      className="bg-white p-10 text-black font-sans max-w-[210mm] mx-auto hidden print:block"
+    >
+      {/* --- INVOICE HEADER --- */}
+      <div className="flex justify-between items-start border-b-2 border-gray-800 pb-8 mb-8">
+        <div>
+          {/* LOGO */}
+          <h1 className="text-4xl font-serif font-bold text-gray-900 tracking-tighter mb-2">
+            KRAMBICA
+          </h1>
+          <p className="text-gray-500 text-sm uppercase tracking-widest mb-4">
+            Premium Ethnic Wear
+          </p>
+
+          <div className="text-xs text-gray-600 space-y-1">
+            <p>123, Fashion Street, Alkapuri</p>
+            <p>Vadodara, Gujarat, 390007</p>
+            <p>Email: support@krambica.com</p>
+            <p>Phone: +91 98765 43210</p>
+            <p className="font-bold mt-2">GSTIN: 24ABCDE1234F1Z5</p>
+          </div>
+        </div>
+
+        <div className="text-right">
+          <h2 className="text-3xl font-light text-gray-400 mb-4">INVOICE</h2>
+          <div className="space-y-2">
+            <div className="flex justify-between gap-8">
+              <span className="text-gray-500 font-medium text-sm">
+                Invoice No:
+              </span>
+              <span className="font-bold text-gray-900">
+                #{order.order_id || order.id}
+              </span>
+            </div>
+            <div className="flex justify-between gap-8">
+              <span className="text-gray-500 font-medium text-sm">Date:</span>
+              <span className="font-bold text-gray-900">
+                {formatDate(order.placedAt || order.createdAt)}
+              </span>
+            </div>
+            <div className="flex justify-between gap-8">
+              <span className="text-gray-500 font-medium text-sm">Status:</span>
+              <span className="font-bold text-gray-900 uppercase">
+                {order.paymentStatus}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* --- BILL TO / SHIP TO --- */}
+      <div className="grid grid-cols-2 gap-12 mb-10">
+        <div>
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+            Bill To
+          </h3>
+          {order.shippingAddress ? (
+            <div className="text-sm text-gray-800 space-y-1">
+              <p className="font-bold text-base">
+                {order.shippingAddress.fullName}
+              </p>
+              <p>{order.shippingAddress.addressLine1}</p>
+              {order.shippingAddress.addressLine2 && (
+                <p>{order.shippingAddress.addressLine2}</p>
+              )}
+              <p>
+                {order.shippingAddress.city}, {order.shippingAddress.state} -{" "}
+                {order.shippingAddress.zipCode}
+              </p>
+              <p>{order.shippingAddress.country}</p>
+              <p className="mt-2">Phone: {order.shippingAddress.phone}</p>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">N/A</p>
+          )}
+        </div>
+
+        {/* Typically same as billing for B2C, but keeping structure for scale */}
+        <div>
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+            Payment Method
+          </h3>
+          <div className="text-sm text-gray-800">
+            <p className="font-medium">{order.paymentMethod}</p>
+            {order.paymentId && (
+              <p className="text-gray-500 text-xs mt-1">
+                Txn ID: {order.paymentId}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* --- ITEM TABLE --- */}
+      <table className="w-full mb-8">
+        <thead>
+          <tr className="border-b-2 border-gray-800">
+            <th className="text-left py-3 text-xs font-bold text-gray-800 uppercase tracking-wider">
+              Item Description
+            </th>
+            <th className="text-center py-3 text-xs font-bold text-gray-800 uppercase tracking-wider">
+              Size
+            </th>
+            <th className="text-center py-3 text-xs font-bold text-gray-800 uppercase tracking-wider">
+              Qty
+            </th>
+            <th className="text-right py-3 text-xs font-bold text-gray-800 uppercase tracking-wider">
+              Price
+            </th>
+            <th className="text-right py-3 text-xs font-bold text-gray-800 uppercase tracking-wider">
+              Amount
+            </th>
+          </tr>
+        </thead>
+        <tbody className="text-sm text-gray-700">
+          {order.items?.map((item, index) => {
+            const sizeVariant = item.sizeVariant;
+            const productColor = sizeVariant?.productColor;
+            const name =
+              productColor?.product?.name ||
+              productColor?.color_name ||
+              "Product";
+
+            return (
+              <tr key={index} className="border-b border-gray-200">
+                <td className="py-4 pr-4">
+                  <p className="font-semibold text-gray-900">{name}</p>
+                  <p className="text-xs text-gray-500">
+                    Color: {productColor?.color_name}
+                  </p>
+                  {sizeVariant?.sku && (
+                    <p className="text-xs text-gray-400">
+                      SKU: {sizeVariant.sku}
+                    </p>
+                  )}
+                </td>
+                <td className="py-4 text-center">{sizeVariant?.size}</td>
+                <td className="py-4 text-center">{item.quantity}</td>
+                <td className="py-4 text-right">
+                  {formatCurrency(item.price)}
+                </td>
+                <td className="py-4 text-right font-medium">
+                  {formatCurrency(item.price * item.quantity)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* --- SUMMARY SECTION --- */}
+      <div className="flex justify-end mb-12">
+        <div className="w-64 space-y-3">
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Subtotal</span>
+            <span>{formatCurrency(order.totalAmount)}</span>
+          </div>
+          {order.discount > 0 && (
+            <div className="flex justify-between text-sm text-emerald-600">
+              <span>Discount</span>
+              <span>-{formatCurrency(order.discount)}</span>
+            </div>
+          )}
+          {order.tax > 0 && (
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Tax (GST)</span>
+              <span>{formatCurrency(order.tax)}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Shipping</span>
+            <span>{formatCurrency(order.shippingCost)}</span>
+          </div>
+          <div className="flex justify-between text-lg font-bold text-gray-900 border-t-2 border-gray-800 pt-3 mt-3">
+            <span>Total</span>
+            <span>{formatCurrency(order.grandTotal)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* --- FOOTER --- */}
+      <div className="border-t border-gray-200 pt-8 mt-auto">
+        <div className="flex justify-between items-end">
+          <div className="text-xs text-gray-500 max-w-md">
+            <p className="font-bold text-gray-900 mb-1">Terms & Conditions:</p>
+            <p>1. Goods once sold will not be taken back.</p>
+            <p>2. Subject to Vadodara Jurisdiction.</p>
+            <p>
+              3. This is a computer generated invoice and does not require a
+              physical signature.
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="font-serif font-bold text-lg text-gray-900 mb-4">
+              Krambica
+            </p>
+            <div className="h-px w-32 bg-gray-300 mb-2"></div>
+            <p className="text-xs text-gray-500 uppercase">
+              Authorized Signatory
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// ==========================================
+// 2. HELPER COMPONENTS (StatusBadge, Preview)
+// ==========================================
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -72,7 +306,6 @@ const OrderItemPreview = ({ item }) => {
     productColor?.images?.find((img) => img.isPrimary) ||
     productColor?.images?.[0];
 
-  // Get product name
   const getProductName = () => {
     if (productColor?.product?.name) {
       return productColor.product.name;
@@ -85,7 +318,6 @@ const OrderItemPreview = ({ item }) => {
 
   return (
     <div className="flex items-center gap-2 bg-white border border-gray-100 rounded-lg p-2">
-      {/* Product Image */}
       <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
         {primaryImage?.url ? (
           <img
@@ -94,13 +326,7 @@ const OrderItemPreview = ({ item }) => {
             className="w-full h-full object-cover"
             onError={(e) => {
               e.target.style.display = "none";
-              e.target.parentElement.innerHTML = `
-                <div class="w-full h-full flex items-center justify-center">
-                  <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                </div>
-              `;
+              e.target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center"><svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`;
             }}
           />
         ) : (
@@ -110,18 +336,13 @@ const OrderItemPreview = ({ item }) => {
         )}
       </div>
 
-      {/* Product Details */}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center">
           <div className="min-w-0">
-            {/* Product Name */}
             <p className="text-xs font-medium text-gray-700 truncate">
               {getProductName()}
             </p>
-
-            {/* Color, Size, and Qty */}
             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-              {/* Color Swatch */}
               {productColor?.color_code && (
                 <div
                   className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0"
@@ -129,22 +350,16 @@ const OrderItemPreview = ({ item }) => {
                   title={productColor.color_name}
                 />
               )}
-
-              {/* Size */}
               {sizeVariant?.size && (
                 <span className="text-[10px] text-gray-600">
                   Size: {sizeVariant.size}
                 </span>
               )}
-
-              {/* Quantity */}
               <span className="text-[10px] text-gray-600">
                 Qty: {item.quantity}
               </span>
             </div>
           </div>
-
-          {/* Price */}
           <div className="text-right ml-2 flex-shrink-0">
             <span className="text-xs font-semibold text-gray-900">
               ₹{item.price?.toLocaleString()}
@@ -156,8 +371,21 @@ const OrderItemPreview = ({ item }) => {
   );
 };
 
-// --- ORDER DETAIL MODAL ---
+// ==========================================
+// 3. UPDATED ORDER DETAIL MODAL (FIXED)
+// ==========================================
 const OrderDetailModal = ({ order, isOpen, onClose }) => {
+  // 1. Initialize ref with null
+  const invoiceRef = useRef(null);
+
+  // 2. FIXED: Use 'contentRef' instead of 'content' callback
+  const handlePrint = useReactToPrint({
+    contentRef: invoiceRef,
+    documentTitle: `Invoice_${order?.order_id || "Krambica"}`,
+    onAfterPrint: () => console.log("Printed successfully"),
+    onPrintError: (error) => console.log("Print error", error),
+  });
+
   if (!isOpen || !order) return null;
 
   const formatDate = (dateString) => {
@@ -186,7 +414,6 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
       productColor?.images?.find((img) => img.isPrimary) ||
       productColor?.images?.[0];
 
-    // Get product name
     let productName = "Product";
     if (productColor?.product?.name) {
       productName = productColor.product.name;
@@ -275,7 +502,7 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                     className="bg-white border border-gray-200 rounded-xl p-4 hover:border-emerald-200 transition-colors"
                   >
                     <div className="flex gap-4">
-                      {/* Product Image - Larger in modal */}
+                      {/* Product Image */}
                       <div className="flex-shrink-0">
                         <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
                           {productInfo.imageUrl ? (
@@ -285,14 +512,7 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.target.style.display = "none";
-                                e.target.parentElement.innerHTML = `
-                                  <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 p-2">
-                                    <svg class="w-8 h-8 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <span class="text-[10px] text-gray-500 text-center">No Image</span>
-                                  </div>
-                                `;
+                                e.target.parentElement.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 p-2"><svg class="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="text-[10px] text-gray-500 text-center">No Image</span></div>`;
                               }}
                             />
                           ) : (
@@ -310,14 +530,11 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-3 mb-2">
                           <div className="flex-1 min-w-0">
-                            {/* Product Name */}
                             <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate mb-2">
                               {productInfo.productName}
                             </h4>
 
-                            {/* Product Variant Details */}
                             <div className="flex flex-wrap gap-3 mb-3">
-                              {/* Color */}
                               {productInfo.colorCode && (
                                 <div className="flex items-center gap-1.5">
                                   <div className="flex items-center gap-1">
@@ -337,7 +554,6 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                                 </div>
                               )}
 
-                              {/* Size */}
                               {productInfo.size && (
                                 <div className="flex items-center gap-1.5">
                                   <Tag className="w-3 h-3 text-gray-400" />
@@ -347,7 +563,6 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                                 </div>
                               )}
 
-                              {/* Quantity */}
                               <div className="flex items-center gap-1.5">
                                 <Hash className="w-3 h-3 text-gray-400" />
                                 <span className="text-xs font-medium text-gray-700">
@@ -357,7 +572,6 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                             </div>
                           </div>
 
-                          {/* Price Section */}
                           <div className="text-right flex-shrink-0">
                             <div className="mb-1">
                               <span className="text-sm sm:text-base font-bold text-emerald-700">
@@ -375,7 +589,6 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                           </div>
                         </div>
 
-                        {/* Item Total */}
                         <div className="flex justify-between items-center pt-3 border-t border-gray-100">
                           <div className="text-sm text-gray-600">
                             Item {index + 1} of {order.items?.length}
@@ -399,7 +612,6 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
 
           {/* Shipping and Payment Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            {/* Shipping Info */}
             {order.shippingAddress && (
               <div>
                 <h3 className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">
@@ -431,7 +643,6 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
               </div>
             )}
 
-            {/* Payment Info */}
             <div>
               <h3 className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">
                 <CreditCard className="w-4 h-4 text-emerald-600" /> Payment
@@ -516,7 +727,7 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer with Print Button */}
         <div className="p-4 border-t border-gray-100 bg-white flex flex-col sm:flex-row justify-end gap-3 safe-area-bottom">
           <button
             onClick={onClose}
@@ -524,19 +735,25 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
           >
             Close
           </button>
+
           <button
-            onClick={() => alert("Invoice download functionality")}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 sm:py-2 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-all shadow-lg shadow-gray-200 order-1 sm:order-2"
+            onClick={() => handlePrint()}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 sm:py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-all shadow-lg shadow-gray-200 order-1 sm:order-2"
           >
             <Download className="w-4 h-4" /> Download Invoice
           </button>
+        </div>
+
+        {/* HIDDEN INVOICE COMPONENT (Rendered for React-To-Print) */}
+        <div style={{ display: "none" }}>
+          <InvoiceTemplate ref={invoiceRef} order={order} />
         </div>
       </div>
     </div>
   );
 };
 
-// --- MAIN PROFILE COMPONENT ---
+// --- MAIN PROFILE COMPONENT (Unchanged except imports) ---
 const UserProfile = () => {
   const user = useAppSelector(selectUser);
 
@@ -600,7 +817,6 @@ const UserProfile = () => {
         return;
       }
 
-      // --- CONSTRUCT FILTERS ---
       const filters = [
         {
           fieldname: "user_id",
@@ -609,10 +825,7 @@ const UserProfile = () => {
         },
       ];
 
-      // Add Search Filter if query exists (assuming backend supports 'order_id' or similar)
       if (searchQuery) {
-        // Note: Logic here depends on what backend supports for search.
-        // Example: Searching by order_id.
         if (!isNaN(searchQuery)) {
           filters.push({
             fieldname: "order_id",
@@ -625,7 +838,7 @@ const UserProfile = () => {
       const requestBody = {
         filters: filters,
         page: page,
-        limit: 5, // UI fits 5 items better than 1, overriding pagination limit to 5
+        limit: 5,
       };
 
       const response = await fetch(apiUrl, {
@@ -643,14 +856,12 @@ const UserProfile = () => {
       const responseJson = await response.json();
 
       if (responseJson.status === "success" && responseJson.data.success) {
-        // Accessing the nested data structure from your response
         setOrders(responseJson.data.data);
-        // Accessing pagination object directly from responseJson.data.pagination
         setPagination({
           page: responseJson.data.pagination.page,
           totalPages: responseJson.data.pagination.totalPages,
           hasNextPage: responseJson.data.pagination.hasNextPage,
-          hasPreviousPage: responseJson.data.pagination.hasPreviousPage, // Note: your response had 'hasPreviousPage' as typo in JSON but likely hasPrevPage in code? Adjusted to response.
+          hasPreviousPage: responseJson.data.pagination.hasPreviousPage,
           total: responseJson.data.pagination.total,
         });
       } else {
@@ -664,7 +875,6 @@ const UserProfile = () => {
     }
   };
 
-  // Debounce effect for search
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchOrders(1);
@@ -715,40 +925,6 @@ const UserProfile = () => {
     }
   };
 
-  const calculateStats = () => {
-    const totalSpent = orders
-      .filter((order) => order.status === "DELIVERED")
-      .reduce((sum, order) => sum + order.grandTotal, 0);
-
-    const activeOrders = orders.filter(
-      (o) => o.status !== "DELIVERED" && o.status !== "CANCELLED"
-    ).length;
-
-    return [
-      {
-        label: "Total Orders",
-        value: pagination.total.toString(),
-        icon: ShoppingBag,
-        color: "text-blue-600",
-        bg: "bg-blue-50",
-      },
-      {
-        label: "Pending",
-        value: activeOrders.toString(),
-        icon: Clock,
-        color: "text-amber-600",
-        bg: "bg-amber-50",
-      },
-      {
-        label: "Total Spent",
-        value: `₹${totalSpent.toLocaleString()}`,
-        icon: TrendingUp,
-        color: "text-emerald-600",
-        bg: "bg-emerald-50",
-      },
-    ];
-  };
-
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20">
       {/* --- HERO SECTION --- */}
@@ -772,29 +948,6 @@ const UserProfile = () => {
                 purchase history all in one place.
               </p>
             </div>
-            {/* Stats Row */}
-            {/* <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide snap-x">
-              {calculateStats().map((stat, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-gray-200 px-4 py-3 rounded-2xl shadow-sm min-w-[150px] snap-center"
-                >
-                  <div className={`p-2 rounded-xl ${stat.bg} flex-shrink-0`}>
-                    <stat.icon
-                      className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      {stat.label}
-                    </p>
-                    <p className="text-base sm:text-lg font-bold text-gray-900">
-                      {stat.value}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div> */}
           </div>
         </div>
       </div>
@@ -958,7 +1111,6 @@ const UserProfile = () => {
                   </span>
                 </h2>
 
-                {/* Search Input */}
                 <div className="relative w-full sm:w-64">
                   <input
                     type="text"
@@ -971,7 +1123,6 @@ const UserProfile = () => {
                 </div>
               </div>
 
-              {/* Pagination Controls */}
               <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                 <button
                   onClick={() => handlePageChange(pagination.page - 1)}
