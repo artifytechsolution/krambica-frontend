@@ -22,23 +22,23 @@ const VideoCarousel = () => {
   const videos = [
     {
       title: "Orange Crop Top Palazzo Set",
-      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1762082241/products/colors/color_6_1762082239640_2.mp4",
+      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1766823686/products/colors/color_84_1766823477294_0.mp4",
     },
     {
       title: "Pink Floral Print Palazzo Set",
-      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1762274177/products/colors/color_7_1762274096242_3.mp4",
+      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1766823377/products/colors/color_83_1766823162260_0.mp4",
     },
     {
       title: "Elegant Green Suit Set",
-      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1762082241/products/colors/color_6_1762082239640_2.mp4",
+      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1766823902/products/colors/color_83_1766823818238_0.mp4",
     },
     {
       title: "Maroon Embroidered Saree",
-      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1762274177/products/colors/color_7_1762274096242_3.mp4",
+      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1766824587/products/colors/color_83_1766824442017_0.mp4",
     },
     {
       title: "Grey Printed Kurta Set",
-      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1762082241/products/colors/color_6_1762082239640_2.mp4",
+      url: "https://res.cloudinary.com/diq96m1v0/video/upload/v1766824587/products/colors/color_83_1766824442017_0.mp4",
     },
   ];
 
@@ -233,11 +233,11 @@ const VideoCarousel = () => {
                 {isActive && (
                   <>
                     <div className="absolute top-6 left-6 right-6 flex justify-between items-start animate-in fade-in slide-in-from-top-4 duration-700">
-                      <div className="bg-white/20 backdrop-blur-md border border-white/30 p-3 px-4 rounded-xl max-w-[75%]">
+                      {/* <div className="bg-white/20 backdrop-blur-md border border-white/30 p-3 px-4 rounded-xl max-w-[75%]">
                         <p className="text-white text-sm font-medium leading-tight">
                           {video.title}
                         </p>
-                      </div>
+                      </div> */}
 
                       <div className="flex flex-col gap-3">
                         <button className="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white/50 cursor-not-allowed">

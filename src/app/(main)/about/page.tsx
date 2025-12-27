@@ -796,10 +796,25 @@ import {
   FaEnvelope,
   FaStar,
   FaPause,
+  FaWhatsapp,
 } from "react-icons/fa";
 import { FiInstagram, FiFacebook } from "react-icons/fi";
 import { FaTiktok } from "react-icons/fa";
-import { Check, Leaf, ShoppingBag, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Ban,
+  Check,
+  FileCheck,
+  Leaf,
+  PackageCheck,
+  Phone,
+  ShoppingBag,
+  Store,
+  Users,
+  Video,
+} from "lucide-react";
+import Link from "next/link";
 
 // Color Constants
 const COLORS = {
@@ -860,51 +875,102 @@ const PrimaryButton = ({
 // Hero Component
 const Hero = () => {
   return (
-    <section id="home" className="">
-      <div className="grid md:grid-cols-2 gap-8 md:gap-12 px-4 md:px-16 py-8 md:py-16 items-center">
-        <div className="text-center md:text-left">
-          <h1 className="text-3xl md:text-5xl font-serif leading-tight mb-4 md:mb-6 text-gray-800">
-            Curated Style for Every Occasion
-          </h1>
-          <p className="text-sm md:text-base leading-relaxed mb-6 md:mb-8 text-gray-600">
-            We believe that style is a form of self-expression—it's how we
-            present ourselves to the world. That's why we provide premium,
-            sustainably made clothing for every taste and lifestyle.
-          </p>
-          <PrimaryButton className="mx-auto md:mx-0">
-            Explore Collection
-            <span className="text-xl ml-2">→</span>
-          </PrimaryButton>
-        </div>
-        <div className="relative">
-          <div className="grid grid-cols-2 gap-3 md:gap-4">
-            <div className="bg-gray-300 h-40 md:h-48 rounded-xl md:rounded-2xl overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=500&fit=crop"
-                alt="Casual outfit"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="bg-gray-300 h-40 md:h-48 rounded-xl md:rounded-2xl overflow-hidden mt-4 md:mt-8">
-              <img
-                src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=400&h=500&fit=crop"
-                alt="Formal wear"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="bg-gray-300 h-40 md:h-48 rounded-xl md:rounded-2xl overflow-hidden -mt-2 md:-mt-4">
-              <img
-                src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&h=500&fit=crop"
-                alt="Streetwear"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="bg-gray-300 h-40 md:h-48 rounded-xl md:rounded-2xl overflow-hidden mt-2 md:mt-4">
-              <img
-                src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=400&h=500&fit=crop"
-                alt="Accessories"
-                className="w-full h-full object-cover"
-              />
+    <section className="relative w-full overflow-hidden bg-stone-50 py-12 md:py-24">
+      <div className="container mx-auto px-4 md:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          {/* Left Content */}
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left z-10">
+            <span className="mb-4 inline-block rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold tracking-wide text-teal-800 uppercase">
+              New Collection 2025
+            </span>
+            <h1 className="mb-6 font-serif text-4xl font-medium leading-tight text-teal-900 md:text-6xl">
+              From Fabric to Fit, <br />
+              <span className="italic text-teal-700">Made with Care.</span>
+            </h1>
+            <p className="mb-8 max-w-lg text-lg leading-relaxed text-gray-600">
+              Discover our exclusive range of Mulmul Cotton and Silk. Designed
+              for a relaxed fit that needs no alteration—crafted directly from
+              our production house to your wardrobe.
+            </p>
+
+            {/* Primary Button styled manually here to ensure it works */}
+            <Link href="/shop">
+              <button className="group flex items-center gap-2 rounded-full bg-[#115e59] px-8 py-4 text-white transition-all hover:bg-teal-900 hover:shadow-lg">
+                <span className="font-medium tracking-wide">
+                  Explore Collection
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="h-5 w-5 transition-transform group-hover:translate-x-1"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                  />
+                </svg>
+              </button>
+            </Link>
+          </div>
+
+          {/* Right Media Grid (2 Videos + 2 Images) */}
+          <div className="relative mx-auto w-full max-w-2xl lg:max-w-none">
+            {/* Decorative blob background */}
+            <div className="absolute -right-20 top-1/2 -z-10 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-teal-50 blur-3xl opacity-60"></div>
+
+            <div className="grid grid-cols-2 gap-4 md:gap-6">
+              {/* Item 1: Video (Vertical/Tall) */}
+              <div className="relative h-64 overflow-hidden rounded-2xl md:h-80 shadow-md translate-y-8">
+                <video
+                  className="h-full w-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  poster="https://images.unsplash.com/photo-1529139574466-a302d27f60c0?auto=format&fit=crop&q=80"
+                >
+                  {/* Replace with your actual video URL */}
+                  <source src="/aboutimage/ab3.mp4" type="video/mp4" />
+                </video>
+                <div className="absolute inset-0 bg-black/10"></div>
+              </div>
+
+              {/* Item 2: Image */}
+              <div className="relative h-64 overflow-hidden rounded-2xl md:h-80 shadow-md">
+                <img
+                  src="/aboutimage/ab1.png"
+                  alt="Premium Silk Texture"
+                  className="h-full w-full object-cover hover:scale-105 transition-transform duration-700"
+                />
+              </div>
+
+              {/* Item 3: Image */}
+              <div className="relative h-64 overflow-hidden rounded-2xl md:h-80 shadow-md translate-y-8">
+                <img
+                  src="/aboutimage/ab2.png"
+                  alt="Cotton Detail"
+                  className="h-full w-full object-cover hover:scale-105 transition-transform duration-700"
+                />
+              </div>
+
+              {/* Item 4: Video */}
+              <div className="relative h-64 overflow-hidden rounded-2xl md:h-80 shadow-md">
+                <video
+                  className="h-full w-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                >
+                  {/* Replace with your actual video URL */}
+                  <source src="/aboutimage/ab4.mp4" type="video/mp4" />
+                </video>
+                <div className="absolute inset-0 bg-black/10"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -970,42 +1036,42 @@ const Mission = () => {
 
         {/* 3. Interactive Image Gallery */}
         <div className="relative h-[400px] md:h-[500px] mb-24 flex justify-center items-center group perspective-1000">
-          {/* Left Image Card */}
+          {/* Left Image Card (Image 1) */}
           <div
             className="absolute w-52 h-72 md:w-72 md:h-96 bg-zinc-800 rounded-2xl border-4 border-zinc-800/50 shadow-2xl overflow-hidden transform transition-all duration-500 ease-out
             -rotate-6 -translate-x-12 md:-translate-x-32 translate-y-4 scale-90 z-10
             hover:z-30 hover:scale-105 hover:rotate-0 hover:-translate-y-2 hover:border-amber-500/30 cursor-pointer"
           >
             <img
-              src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&h=800&fit=crop"
-              alt="Sustainable fabrics"
+              src="https://res.cloudinary.com/diq96m1v0/image/upload/v1766803622/products/colors/color_59_1766803618644_0.jpg"
+              alt="Sustainable fabrics - Blue Print"
               className="w-full h-full object-cover opacity-70 hover:opacity-100 transition-opacity duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-100 hover:opacity-0 transition-opacity duration-500" />
           </div>
 
-          {/* Right Image Card */}
+          {/* Right Image Card (Image 2) */}
           <div
             className="absolute w-52 h-72 md:w-72 md:h-96 bg-zinc-800 rounded-2xl border-4 border-zinc-800/50 shadow-2xl overflow-hidden transform transition-all duration-500 ease-out
             rotate-6 translate-x-12 md:translate-x-32 translate-y-4 scale-90 z-10
             hover:z-30 hover:scale-105 hover:rotate-0 hover:-translate-y-2 hover:border-amber-500/30 cursor-pointer"
           >
             <img
-              src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=800&fit=crop"
-              alt="Design studio"
+              src=" https://res.cloudinary.com/diq96m1v0/image/upload/v1766200452/products/colors/color_5_1766200447841_0.jpg"
+              alt="Design studio - Pink Pattern"
               className="w-full h-full object-cover opacity-70 hover:opacity-100 transition-opacity duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-100 hover:opacity-0 transition-opacity duration-500" />
           </div>
 
-          {/* Center Main Image */}
+          {/* Center Main Image (Image 3) */}
           <div
             className="absolute w-60 h-80 md:w-80 md:h-[28rem] bg-zinc-800 rounded-2xl border-4 border-white/10 shadow-2xl overflow-hidden transform transition-all duration-500 ease-out
             z-20 hover:scale-105 hover:border-white/30 hover:shadow-amber-500/20"
           >
             <img
-              src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&h=800&fit=crop"
-              alt="Model wearing collection"
+              src="https://res.cloudinary.com/diq96m1v0/image/upload/v1766199290/products/colors/color_3_1766199288684_0.jpg"
+              alt="Model wearing collection - Cyan Detail"
               className="w-full h-full object-cover"
             />
           </div>
@@ -2009,6 +2075,144 @@ const Collections = () => {
 // };
 
 // AboutPage Component
+const WholesaleInquirySection = () => {
+  const handleWhatsAppClick = () => {
+    const message = encodeURIComponent(
+      "Hello Krambica, I am interested in wholesale. Here is my visiting card."
+    );
+    window.open(`https://wa.me/919033933799?text=${message}`, "_blank");
+  };
+
+  return (
+    <section className="w-full bg-slate-50 py-16 sm:py-20 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Section Header */}
+        <div className="mb-12 border-b border-teal-100 pb-6">
+          <h2 className="text-3xl sm:text-4xl font-serif text-teal-900 mb-2">
+            Wholesale & Manufacturing
+          </h2>
+          <p className="text-teal-600 text-sm tracking-wide uppercase font-medium">
+            Direct Factory Supply • B2B Only
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+          {/* Left Column: The Rules (Clean List) */}
+          <div className="lg:col-span-7 space-y-8">
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 mt-1">
+                  {/* Number 1 */}
+                  <div className="w-6 h-6 rounded-full border border-teal-200 flex items-center justify-center text-teal-800 bg-white">
+                    <span className="text-xs font-bold">1</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-teal-900">
+                    Minimum Order Quantity (MOQ)
+                  </h3>
+                  <p className="text-slate-600 mt-1 leading-relaxed">
+                    We support boutique owners. You can start with a minimum of{" "}
+                    <span className="font-semibold text-teal-800">3 sets</span>.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 mt-1">
+                  {/* Number 2 */}
+                  <div className="w-6 h-6 rounded-full border border-teal-200 flex items-center justify-center text-teal-800 bg-white">
+                    <span className="text-xs font-bold">2</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-teal-900">
+                    Verification Process
+                  </h3>
+                  <p className="text-slate-600 mt-1 leading-relaxed">
+                    We maintain strict B2B integrity. A{" "}
+                    <span className="font-semibold text-teal-800">
+                      Shop Visiting Card is mandatory
+                    </span>{" "}
+                    for all inquiries.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 mt-1">
+                  {/* Number 3 */}
+                  <div className="w-6 h-6 rounded-full border border-teal-200 flex items-center justify-center text-teal-800 bg-white">
+                    <span className="text-xs font-bold">3</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-teal-900">
+                    Selection Experience
+                  </h3>
+                  <p className="text-slate-600 mt-1 leading-relaxed">
+                    View our latest collection via{" "}
+                    <span className="font-semibold text-teal-800">
+                      Video Call
+                    </span>
+                    . Sample requests are available to assure quality before
+                    bulk booking.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Policy & Action (Sticky) */}
+          <div className="lg:col-span-5">
+            <div className="bg-white p-8 rounded-none border border-teal-100 shadow-sm sticky top-6">
+              {/* Warning Box - Replaced Black with Deep Teal */}
+              <div className="bg-teal-900 text-white p-6 mb-8 shadow-md">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="flex-shrink-0 w-5 h-5 text-yellow-400 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold text-sm uppercase tracking-widest mb-2 text-yellow-400">
+                      Direct Supply Policy
+                    </h4>
+                    <p className="text-teal-50 text-sm leading-relaxed">
+                      We do <u>not</u> work with agents, traders, wholesalers,
+                      or online resellers. Krambica supplies directly to retail
+                      shops only.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Call to Action */}
+              <div className="space-y-4">
+                <p className="text-slate-600 text-sm mb-4">
+                  Ready to partner? Send your visiting card to our official
+                  business number.
+                </p>
+
+                <button
+                  onClick={handleWhatsAppClick}
+                  className="w-full py-4 bg-[#25D366] hover:bg-[#1ebc57] text-white font-medium flex items-center justify-center gap-3 transition-all shadow-sm"
+                >
+                  <FaWhatsapp className="w-5 h-5" />
+                  <span>Connect on WhatsApp</span>
+                </button>
+
+                <div className="flex items-center justify-center gap-2 pt-4 border-t border-slate-100">
+                  <Phone className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-500 text-sm font-mono">
+                    +91 90339 33799
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const AboutPage = () => {
   return (
     <section id="about" className="bg-white w-full">
@@ -2283,6 +2487,7 @@ const App = () => {
       <Hero />
       <Mission />
       <TextSection />
+      <WholesaleInquirySection />
       <StoryImpact />
       <VideoSection />
       <Journey />

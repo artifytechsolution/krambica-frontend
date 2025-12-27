@@ -23,8 +23,10 @@ import {
   FaTwitter,
   FaLinkedinIn,
   FaWhatsapp,
+  FaFacebook,
 } from "react-icons/fa";
 import Image from "next/image";
+import { Pinterest } from "@mui/icons-material";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -74,19 +76,35 @@ const ContactPage = () => {
           {/* Quick Stats / Socials */}
           <div className="flex flex-col lg:items-end gap-6">
             <div className="flex gap-4">
-              {[FaInstagram, FaTwitter, FaLinkedinIn].map((Icon, i) => (
+              {[
+                {
+                  Icon: FaInstagram,
+                  link: "https://www.instagram.com/krambica_cottonkurti_hub",
+                },
+                {
+                  Icon: Pinterest,
+                  link: "https://pin.it/5u2A0ciIb",
+                },
+                {
+                  Icon: FaFacebook,
+                  link: "https://www.facebook.com/share/16FxjVcE4q/?mibextid=wwXIfr",
+                },
+              ].map(({ Icon, link }, i) => (
                 <a
                   key={i}
-                  href="#"
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-12 h-12 rounded-full border border-stone-200 flex items-center justify-center text-slate-600 hover:bg-emerald-900 hover:text-white hover:border-emerald-900 transition-all duration-300"
                 >
                   <Icon className="w-5 h-5" />
                 </a>
               ))}
             </div>
-            <p className="text-sm font-medium text-slate-400">
-              @KrambicaOfficial
-            </p>
+
+            {/* <p className="text-sm font-medium text-slate-400">
+    @KrambicaOfficial
+  </p> */}
           </div>
         </div>
       </section>
@@ -139,12 +157,14 @@ const ContactPage = () => {
                 <p className="text-slate-500 text-sm mb-2">
                   Mon-Fri from 10am to 8pm.
                 </p>
-                <p className="font-medium text-emerald-800">+91 123 456 7890</p>
+                <p className="font-medium text-emerald-800">+91 9173381643</p>
               </a>
 
               {/* Card 3: WhatsApp */}
               <a
-                href="#"
+                href="https://wa.me/9173381643"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group p-6 bg-[#25D366]/10 rounded-2xl border border-[#25D366]/20 hover:bg-[#25D366]/20 transition-all duration-300"
               >
                 <div className="flex items-center gap-4">
@@ -343,7 +363,7 @@ const ContactPage = () => {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div>
               <h2 className="text-4xl font-serif text-slate-900 mb-4">
-                Our Stores
+                Our Brand Stores
               </h2>
               <p className="text-slate-500">
                 Experience our collection in Gujarat.
@@ -376,7 +396,9 @@ const ContactPage = () => {
               <div className="absolute bottom-0 left-0 p-8 z-20 w-full text-white">
                 <div className="flex justify-between items-end">
                   <div>
-                    <h3 className="text-3xl font-serif mb-2">Baroda Studio</h3>
+                    <h3 className="text-3xl font-serif mb-2">
+                      Vadodara Studio
+                    </h3>
                     <div className="flex items-center gap-2 text-white/80 text-sm mb-1">
                       <FiMapPin className="w-4 h-4" />
                       <span>
@@ -411,7 +433,7 @@ const ContactPage = () => {
               <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-105">
                 <Image
                   src="/journey/journey6.png"
-                  alt="Bhavnagar Studio"
+                  alt="Bhavnagar Store"
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

@@ -2,11 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+// Importing UI icons from Lucide
 import {
-  Facebook,
-  Instagram,
-  Twitter,
-  Youtube,
   Mail,
   Phone,
   MapPin,
@@ -16,6 +13,8 @@ import {
   Globe,
   Heart,
 } from "lucide-react";
+// Importing Brand icons from React-Icons (Best for specific logos like Pinterest/FB)
+import { FaInstagram, FaFacebook, FaPinterest } from "react-icons/fa";
 
 export default function PremiumFooter() {
   const [email, setEmail] = useState("");
@@ -34,10 +33,11 @@ export default function PremiumFooter() {
   };
 
   return (
-    // CHANGE 1: Removed 'hidden md:block' so it shows on mobile too
-    <footer className="bg-gray-50 text-gray-600 font-sans border-t border-gray-200 block">
+    // Added 'w-full' to ensure it spans full width on mobile
+    <footer className="w-full bg-gray-50 text-gray-600 font-sans border-t border-gray-200">
       {/* ================= Newsletter Section ================= */}
       <div className="relative overflow-hidden border-b border-gray-200">
+        {/* Background Blur Effect */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-teal-500/5 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
@@ -76,7 +76,7 @@ export default function PremiumFooter() {
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-transparent px-4 py-3 focus:ring-0 text-sm outline-none"
+                    className="w-full bg-transparent px-4 py-3 focus:ring-0 text-sm outline-none text-gray-900"
                   />
                   <button
                     disabled={status !== "idle"}
@@ -109,7 +109,7 @@ export default function PremiumFooter() {
 
       {/* ================= 4 COLUMN FOOTER LINKS ================= */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        {/* CHANGE 2: Grid-cols-1 ensures single column (line by line) on mobile */}
+        {/* Grid-cols-1 ensures it shows as a single column list on mobile */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-8">
           {/* Column 1: Brand Info */}
           <div className="space-y-6">
@@ -127,15 +127,31 @@ export default function PremiumFooter() {
               made with care in India.
             </p>
 
+            {/* Social Media Links - Updated */}
             <div className="flex gap-4">
-              {[Facebook, Instagram, Twitter, Youtube].map((Icon, i) => (
-                <Link
+              {[
+                {
+                  Icon: FaInstagram,
+                  link: "https://www.instagram.com/krambica_cottonkurti_hub",
+                },
+                {
+                  Icon: FaPinterest,
+                  link: "https://pin.it/5u2A0ciIb",
+                },
+                {
+                  Icon: FaFacebook,
+                  link: "https://www.facebook.com/share/16FxjVcE4q/?mibextid=wwXIfr",
+                },
+              ].map(({ Icon, link }, i) => (
+                <a
                   key={i}
-                  href="#"
-                  className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-teal-600 hover:text-white hover:border-teal-600 transition"
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white border border-stone-200 flex items-center justify-center text-slate-600 hover:bg-teal-600 hover:text-white hover:border-teal-600 transition-all duration-300"
                 >
-                  <Icon className="w-4 h-4" />
-                </Link>
+                  <Icon className="w-5 h-5" />
+                </a>
               ))}
             </div>
           </div>
@@ -195,7 +211,6 @@ export default function PremiumFooter() {
                   Help Center
                 </Link>
               </li>
-              {/* Separator for clarity */}
               <li className="pt-2 border-t border-dashed border-gray-200 w-3/4"></li>
               <li>
                 <Link
@@ -239,11 +254,18 @@ export default function PremiumFooter() {
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-teal-600 shrink-0" />
-                <span className="hover:text-gray-900">+91 7485908799</span>
+                <a href="tel:+917485908799" className="hover:text-gray-900">
+                  +91 7485908799
+                </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-teal-600 shrink-0" />
-                <span className="hover:text-gray-900">hello@krambica.com</span>
+                <a
+                  href="mailto:hello@krambica.com"
+                  className="hover:text-gray-900"
+                >
+                  hello@krambica.com
+                </a>
               </li>
             </ul>
           </div>
@@ -253,8 +275,8 @@ export default function PremiumFooter() {
       {/* ================= Bottom Bar ================= */}
       <div className="border-t border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gray-500">
-            © 2025 Krambica. All rights reserved.
+          <p className="text-sm text-gray-500 text-center md:text-left">
+            © {new Date().getFullYear()} Krambica. All rights reserved.
           </p>
 
           <div className="flex gap-2">
