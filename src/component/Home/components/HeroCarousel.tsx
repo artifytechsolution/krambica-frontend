@@ -6,30 +6,29 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 const slides = [
   {
     id: "01",
-    title: "The Minimalist Edit",
-    subtitle: "New Season",
+    title: "Welcome",
+    subtitle: "Organic Silk",
     description:
-      "Curated textures and organic shapes for a refined living experience.",
+      "Discover timeless styles crafted in premium, breathable fabrics.",
+    img: "/banners/webbanner3.png",
+    mobileImg: "/banners/mobilebanner3.png",
+  },
+  {
+    id: "02",
+    title: "Our Latest Collection",
+    subtitle: "New Season",
+    description: "A cotton kurti with curated textures and organic shapes",
     img: "/banners/webbanner1.png", // 1536 x 1024
     mobileImg: "/banners/mobilebanner1.png", // 1080 x 1920
   },
   {
-    id: "02",
-    title: "Architectural Form",
-    subtitle: "Atelier Collection",
+    id: "03",
+    title: "New Arrivals",
+    subtitle: "Cotton Kurti Edit",
     description:
-      "Where structure meets comfort. Explore our latest designer collaborations.",
+      "Fresh styles crafted in soft cotton with refined, everyday elegance.",
     img: "/banners/webbanner2.png",
     mobileImg: "/banners/mobilebanner2.png",
-  },
-  {
-    id: "03",
-    title: "Organic Silk",
-    subtitle: "Premium Textiles",
-    description:
-      "Lightweight fabrics designed to breathe and move with the light of your home.",
-    img: "/banners/webbanner3.png",
-    mobileImg: "/banners/mobilebanner3.png",
   },
 ];
 

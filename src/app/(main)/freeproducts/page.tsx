@@ -11,7 +11,7 @@ import {
   ShoppingBag,
   Loader2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/Navigation";
 
 // Free Product Card Component
 const FreeProductCard = ({ product, isSelected, onSelect, canSelect }) => {
@@ -167,9 +167,12 @@ const FreeProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
+  const searchParams = useSearchParams();
+  const promotionId2 = searchParams.get("promotionId");
+  console.log("promotionId2", promotionId2);
 
   const maxSelection = 2; // Buy 2 Get 1 Free = 2 free items
-  const promotionId = 2; // You can make this dynamic based on your needs
+  const promotionId = promotionId2; // You can make this dynamic based on your needs
 
   // Fetch free products from API
   useEffect(() => {

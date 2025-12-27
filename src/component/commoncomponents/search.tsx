@@ -1,125 +1,47 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
-import {
-  Dialog,
-  Box,
-  InputBase,
-  IconButton,
-  Typography,
-  Avatar,
-  Fade,
-  Zoom,
-} from "@mui/material";
-import { Search, X, Loader2, AlertCircle } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { Dialog, Fade, Zoom, IconButton, Backdrop } from "@mui/material";
+import {
+  Search,
+  X,
+  Loader2,
+  ShoppingBag,
+  ArrowRight,
+  Star,
+} from "lucide-react";
 
-interface SearchPopupProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-// API Response Interfaces
-interface CategoryData {
-  id: string;
-  category_id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+// ==========================================
+// 1. Types & Helper Logic
+// ==========================================
 
 interface ProductImage {
   id: number;
-  product_color_id: number;
   url: string;
-  altText: string;
-  type: "image" | "video";
   isPrimary: boolean;
-  displayOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface SizeVariant {
-  id: string;
-  product_size_var_id: number;
-  product_color_id: number;
-  size: string;
-  sku: string;
-  price: number;
-  stock: number;
-  reservedStock: number;
-  availableStock: number;
-  lowStockThreshold: number;
-  isAvailable: boolean;
-  isLowStock: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ColorVariant {
-  id: string;
-  product_color_id: number;
-  product_id: number;
-  color_name: string;
-  color_code: string;
-  isAvailable: boolean;
-  displayOrder: number;
-  totalStock: number;
-  createdAt: string;
-  updatedAt: string;
-  images: ProductImage[];
-  sizeVariants: SizeVariant[];
+  type: "image" | "video";
 }
 
 interface ProductData {
   id: string;
   product_id: number;
   name: string;
-  slug: string;
-  description: string;
-  sku: string;
+  category: { name: string };
   basePrice: number;
+  slug: string;
   isVisible: boolean;
-  isFeatured: boolean;
-  category_id: number;
-  gender: string;
-  material: string;
-  fabric: string;
-  careInstructions: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  reviews: any[];
-  category: CategoryData;
-  colors: ColorVariant[];
+  colors: Array<{
+    isAvailable: boolean;
+    images: ProductImage[];
+    sizeVariants: Array<{ price: number; availableStock: number }>;
+  }>;
   images: ProductImage[];
 }
 
-interface PaginationData {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-interface ApiResponse {
-  status: string;
-  data: {
-    success: boolean;
-    data: ProductData[];
-    pagination: PaginationData;
-  };
-}
-
-// Display interface for search results
 interface SearchResult {
   id: string;
+  product_id: number;
   name: string;
   category: string;
   price: number;
@@ -127,191 +49,201 @@ interface SearchResult {
   image: string;
   inStock: boolean;
   slug: string;
-  product_id: number;
 }
 
-export default function SearchPopup({ open, onClose }: SearchPopupProps) {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+interface SearchPopupProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const transformProductData = (products: ProductData[]): SearchResult[] => {
+  return products.map((product) => {
+    const firstColor =
+      product.colors.find((c) => c.isAvailable) || product.colors[0];
+    const primaryImage =
+      firstColor?.images.find((img) => img.isPrimary && img.type === "image") ||
+      firstColor?.images.find((img) => img.type === "image") ||
+      product.images.find((img) => img.isPrimary && img.type === "image") ||
+      product.images.find((img) => img.type === "image");
+
+    const lowestPrice =
+      firstColor?.sizeVariants.reduce(
+        (min, variant) => (variant.price < min ? variant.price : min),
+        firstColor.sizeVariants[0]?.price || product.basePrice
+      ) || product.basePrice;
+
+    const hasStock =
+      firstColor?.sizeVariants.some((v) => v.availableStock > 0) || false;
+
+    return {
+      id: product.id,
+      product_id: product.product_id,
+      name: product.name,
+      category: product.category.name,
+      price: lowestPrice,
+      originalPrice:
+        lowestPrice < product.basePrice ? product.basePrice : undefined,
+      image: primaryImage?.url || "/placeholder.jpg",
+      inStock: hasStock && product.isVisible,
+      slug: product.slug,
+    };
+  });
+};
+
+const useProductSearch = (open: boolean) => {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalResults, setTotalResults] = useState(0);
+  const abortController = useRef<AbortController | null>(null);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const inputRef = useRef<HTMLInputElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Focus input when dialog opens
   useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    } else {
-      // Reset state when closing
-      setSearchQuery("");
-      setSearchResults([]);
-      setError(null);
-      setTotalResults(0);
+    if (!open) {
+      setTimeout(() => {
+        setQuery("");
+        setResults([]);
+        setLoading(false);
+      }, 300);
     }
   }, [open]);
 
-  // Debounced search effect
   useEffect(() => {
-    // Clear previous timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    if (abortController.current) abortController.current.abort();
 
-    // Abort previous API call
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    if (searchQuery.length === 0) {
-      setSearchResults([]);
-      setIsSearching(false);
-      setError(null);
-      setTotalResults(0);
+    if (!query.trim()) {
+      setResults([]);
+      setLoading(false);
       return;
     }
 
-    if (searchQuery.length < 2) {
-      setIsSearching(false);
-      return;
-    }
+    if (query.length < 2) return;
 
-    setIsSearching(true);
+    setLoading(true);
     setError(null);
 
-    // Debounce for 400ms
-    debounceTimerRef.current = setTimeout(() => {
-      performSearch(searchQuery);
+    debounceTimer.current = setTimeout(async () => {
+      abortController.current = new AbortController();
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL_DUMMY}/api/products/productlist`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              filters: [],
+              globalSearch: query,
+              page: 1,
+              limit: 6,
+            }), // Limit 6 for grid
+            signal: abortController.current.signal,
+          }
+        );
+        const data = await response.json();
+        if (data.status === "success" && data.data.success) {
+          setResults(transformProductData(data.data.data));
+          setTotalResults(data.data.pagination.total);
+        }
+      } catch (err: any) {
+        if (err.name !== "AbortError") setError("Search failed");
+      } finally {
+        setLoading(false);
+      }
     }, 400);
 
-    // Cleanup function
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
-  }, [searchQuery]);
+  }, [query]);
 
-  // Transform API data to display format
-  const transformProductData = (products: ProductData[]): SearchResult[] => {
-    return products.map((product) => {
-      // Get the first available color variant
-      const firstColor =
-        product.colors.find((c) => c.isAvailable) || product.colors[0];
+  return { query, setQuery, results, loading, error, totalResults };
+};
 
-      // Get primary image or first image
-      const primaryImage =
-        firstColor?.images.find(
-          (img) => img.isPrimary && img.type === "image"
-        ) ||
-        firstColor?.images.find((img) => img.type === "image") ||
-        product.images.find((img) => img.isPrimary && img.type === "image") ||
-        product.images.find((img) => img.type === "image");
+// ==========================================
+// 2. UI Components (Grid Card)
+// ==========================================
 
-      // Get the lowest price from size variants
-      const lowestPrice =
-        firstColor?.sizeVariants.reduce(
-          (min, variant) => (variant.price < min ? variant.price : min),
-          firstColor.sizeVariants[0]?.price || product.basePrice
-        ) || product.basePrice;
+const GridCard = ({
+  item,
+  onClick,
+}: {
+  item: SearchResult;
+  onClick: () => void;
+}) => (
+  <div
+    onClick={onClick}
+    className="group relative flex flex-col cursor-pointer bg-white rounded-xl overflow-hidden hover:shadow-xl hover:shadow-stone-200 transition-all duration-300 transform hover:-translate-y-1"
+  >
+    {/* Image Area */}
+    <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
+      <img
+        src={item.image}
+        alt={item.name}
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+      />
 
-      // Check if any variant is in stock
-      const hasStock =
-        firstColor?.sizeVariants.some((v) => v.availableStock > 0) || false;
+      {/* Overlay Actions (Desktop) */}
+      <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
+        <button className="w-full py-2 bg-white text-stone-900 text-xs font-bold uppercase tracking-widest rounded shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+          View Details
+        </button>
+      </div>
 
-      return {
-        id: product.id,
-        product_id: product.product_id,
-        name: product.name,
-        category: product.category.name,
-        price: lowestPrice,
-        originalPrice:
-          lowestPrice < product.basePrice ? product.basePrice : undefined,
-        image: primaryImage?.url || "/placeholder-product.jpg",
-        inStock: hasStock && product.isVisible,
-        slug: product.slug,
-      };
-    });
-  };
+      {!item.inStock && (
+        <div className="absolute top-2 right-2 bg-stone-900 text-white text-[10px] font-bold px-2 py-1 rounded">
+          SOLD OUT
+        </div>
+      )}
+    </div>
 
-  // Perform API search
-  const performSearch = async (query: string) => {
-    try {
-      // Create new abort controller
-      abortControllerRef.current = new AbortController();
+    {/* Text Area */}
+    <div className="p-3 flex flex-col gap-1">
+      <span className="text-[10px] text-teal-600 font-bold uppercase tracking-wider">
+        {item.category}
+      </span>
+      <h4 className="text-sm font-medium text-stone-900 line-clamp-1 group-hover:text-teal-800 transition-colors">
+        {item.name}
+      </h4>
+      <div className="flex items-center gap-2 mt-1">
+        <span className="text-sm font-bold text-stone-900">
+          ₹{item.price.toLocaleString("en-IN")}
+        </span>
+        {item.originalPrice && item.originalPrice > item.price && (
+          <span className="text-xs text-stone-400 line-through">
+            ₹{item.originalPrice.toLocaleString("en-IN")}
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL_DUMMY}/api/products/productlist`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            filters: [],
-            globalSearch: query,
-            page: 1,
-            limit: 6,
-          }),
-          signal: abortControllerRef.current.signal,
-        }
-      );
+// ==========================================
+// 3. Main Component
+// ==========================================
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
+export default function SearchModal({ open, onClose }: SearchPopupProps) {
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { query, setQuery, results, loading, error, totalResults } =
+    useProductSearch(open);
 
-      const data: ApiResponse = await response.json();
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 100);
+  }, [open]);
 
-      if (data.status === "success" && data.data.success) {
-        const transformedResults = transformProductData(data.data.data);
-        setSearchResults(transformedResults);
-        setTotalResults(data.data.pagination.total);
-        setError(null);
-      } else {
-        throw new Error("Invalid API response format");
-      }
-    } catch (err: any) {
-      // Ignore abort errors
-      if (err.name === "AbortError") {
-        return;
-      }
-
-      console.error("Search error:", err);
-      setError(err.message || "Failed to fetch search results");
-      setSearchResults([]);
-      setTotalResults(0);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+    if (query.trim()) {
+      router.push(`/search?q=${encodeURIComponent(query)}`);
       onClose();
     }
   };
 
-  const handleClearSearch = () => {
-    setSearchQuery("");
-    setSearchResults([]);
-    setError(null);
-    setTotalResults(0);
-    inputRef.current?.focus();
-  };
-
-  // Handle product click - redirect to product details page
-  const handleProductClick = (productId: string) => {
-    router.push(`/productdetails/${productId}`);
+  const handleProductClick = (id: string) => {
+    router.push(`/productdetails/${id}`);
     onClose();
   };
 
@@ -322,276 +254,127 @@ export default function SearchPopup({ open, onClose }: SearchPopupProps) {
       maxWidth="md"
       fullWidth
       TransitionComponent={Zoom}
-      transitionDuration={400}
+      transitionDuration={300}
       PaperProps={{
-        className: "rounded-3xl shadow-2xl m-4 overflow-hidden bg-white",
+        className: "!rounded-[24px] !max-w-4xl bg-stone-50 overflow-hidden", // Larger max-width for grid
+        elevation: 0,
       }}
+      BackdropComponent={Backdrop}
       BackdropProps={{
-        className: "backdrop-blur-sm bg-black/40",
+        className: "bg-stone-900/60 backdrop-blur-sm",
       }}
     >
-      <Box className="relative">
-        {/* Search Header */}
-        <Box className="sticky top-0 z-10 bg-white border-b border-gray-100 px-6 py-5">
-          <form onSubmit={handleSearchSubmit}>
-            <Box className="flex items-center gap-4">
-              <Search
-                className="w-6 h-6 text-gray-400 flex-shrink-0"
-                strokeWidth={2.5}
-              />
+      <div className="flex flex-col h-[80vh] max-h-[700px]">
+        {/* --- Floating Header --- */}
+        <div className="p-4 sm:p-6 bg-white sticky top-0 z-20 shadow-sm border-b border-stone-100">
+          <form onSubmit={handleSubmit} className="relative flex items-center">
+            <Search
+              className={`absolute left-4 w-5 h-5 ${
+                loading ? "text-teal-600" : "text-stone-400"
+              }`}
+            />
 
-              <InputBase
-                inputRef={inputRef}
-                placeholder="Search for products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 text-lg text-black placeholder:text-gray-400 font-medium"
-                fullWidth
-              />
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search for 'Cotton Kurti'..."
+              className="w-full pl-12 pr-12 py-4 bg-stone-50 rounded-xl text-lg font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-teal-100 transition-all"
+            />
 
-              {isSearching && (
-                <Loader2
-                  className="w-5 h-5 text-black animate-spin"
-                  strokeWidth={2.5}
-                />
-              )}
-
-              {searchQuery && !isSearching && (
-                <IconButton
-                  size="small"
-                  onClick={handleClearSearch}
-                  className="text-gray-400 hover:text-black hover:bg-gray-100"
-                >
-                  <X className="w-5 h-5" strokeWidth={2.5} />
-                </IconButton>
-              )}
-
-              <IconButton
-                onClick={onClose}
-                className="text-gray-500 hover:text-black hover:bg-gray-100"
-                size="small"
+            {query && !loading && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-4 p-1 hover:bg-stone-200 rounded-full text-stone-400 transition-colors"
               >
-                <X className="w-6 h-6" strokeWidth={2.5} />
-              </IconButton>
-            </Box>
-          </form>
-        </Box>
-
-        {/* Product List */}
-        <Box className="max-h-[70vh] overflow-y-auto px-6 py-4">
-          {/* Empty State */}
-          {searchQuery.length === 0 && (
-            <Fade in timeout={500}>
-              <Box className="flex flex-col items-center justify-center py-20 text-center">
-                <Box className="w-20 h-20 mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Search className="w-10 h-10 text-gray-300" strokeWidth={2} />
-                </Box>
-                <Typography
-                  variant="h6"
-                  className="font-semibold text-gray-400 mb-2"
-                >
-                  Start typing to search
-                </Typography>
-                <Typography className="text-sm text-gray-400">
-                  Search for products, brands, and more
-                </Typography>
-              </Box>
-            </Fade>
-          )}
-
-          {/* Error State */}
-          {error && !isSearching && (
-            <Fade in timeout={500}>
-              <Box className="flex flex-col items-center justify-center py-20 text-center">
-                <Box className="w-20 h-20 mb-6 bg-red-50 rounded-full flex items-center justify-center">
-                  <AlertCircle
-                    className="w-10 h-10 text-red-400"
-                    strokeWidth={2}
-                  />
-                </Box>
-                <Typography
-                  variant="h6"
-                  className="font-semibold text-gray-800 mb-2"
-                >
-                  Something went wrong
-                </Typography>
-                <Typography className="text-sm text-gray-500 mb-4">
-                  {error}
-                </Typography>
-                <button
-                  onClick={() => performSearch(searchQuery)}
-                  className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors font-medium"
-                >
-                  Try Again
-                </button>
-              </Box>
-            </Fade>
-          )}
-
-          {/* Loading State */}
-          {isSearching && searchQuery.length >= 2 && (
-            <Box className="space-y-2 pb-4">
-              {[1, 2, 3, 4].map((item) => (
-                <Box
-                  key={item}
-                  className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 animate-pulse"
-                >
-                  <Box className="w-20 h-20 bg-gray-200 rounded-xl flex-shrink-0" />
-                  <Box className="flex-1 space-y-3">
-                    <Box className="h-4 bg-gray-200 rounded w-3/4" />
-                    <Box className="h-3 bg-gray-200 rounded w-1/2" />
-                    <Box className="h-4 bg-gray-200 rounded w-1/4" />
-                  </Box>
-                </Box>
-              ))}
-            </Box>
-          )}
-
-          {/* Results State */}
-          {searchResults.length > 0 && !isSearching && !error && (
-            <Box className="space-y-2 pb-4">
-              {searchResults.map((product, index) => (
-                <Fade
-                  key={product.id}
-                  in
-                  timeout={300}
-                  style={{ transitionDelay: `${index * 50}ms` }}
-                >
-                  <Box
-                    onClick={() => handleProductClick(product.id)}
-                    className="block"
-                  >
-                    <Box className="group flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-all duration-300 cursor-pointer border border-transparent hover:border-gray-200 hover:shadow-md">
-                      <Box className="relative flex-shrink-0">
-                        <Avatar
-                          src={product.image}
-                          alt={product.name}
-                          variant="rounded"
-                          className="w-20 h-20 shadow-sm group-hover:shadow-lg transition-all duration-300 rounded-xl"
-                          sx={{ width: 80, height: 80 }}
-                        />
-                        {!product.inStock && (
-                          <Box className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center">
-                            <Typography className="text-xs text-white font-bold px-2 py-1 bg-black rounded">
-                              Out of Stock
-                            </Typography>
-                          </Box>
-                        )}
-                      </Box>
-
-                      <Box className="flex-1 min-w-0">
-                        <Typography className="font-semibold text-black group-hover:text-gray-600 transition-colors mb-1 line-clamp-2">
-                          {product.name}
-                        </Typography>
-                        <Typography className="text-sm text-gray-500 mb-2">
-                          {product.category}
-                        </Typography>
-                        <Box className="flex items-center gap-3 flex-wrap">
-                          <Typography className="text-lg font-bold text-black">
-                            ₹
-                            {product.price.toLocaleString("en-IN", {
-                              maximumFractionDigits: 2,
-                            })}
-                          </Typography>
-                          {product.originalPrice &&
-                            product.originalPrice > product.price && (
-                              <>
-                                <Typography className="text-sm text-gray-400 line-through">
-                                  ₹
-                                  {product.originalPrice.toLocaleString(
-                                    "en-IN",
-                                    { maximumFractionDigits: 2 }
-                                  )}
-                                </Typography>
-                                <Typography className="text-xs font-bold text-white bg-black px-2 py-1 rounded">
-                                  {Math.round(
-                                    ((product.originalPrice - product.price) /
-                                      product.originalPrice) *
-                                      100
-                                  )}
-                                  % OFF
-                                </Typography>
-                              </>
-                            )}
-                        </Box>
-                      </Box>
-
-                      <Box className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1">
-                        <Box className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={3}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
-                        </Box>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Fade>
-              ))}
-
-              {/* View All Results Button */}
-              {totalResults > searchResults.length && (
-                <Fade
-                  in
-                  timeout={500}
-                  style={{ transitionDelay: `${searchResults.length * 50}ms` }}
-                >
-                  <Box
-                    onClick={() => {
-                      router.push(
-                        `/search?q=${encodeURIComponent(searchQuery)}`
-                      );
-                      onClose();
-                    }}
-                    className="block"
-                  >
-                    <Box className="mt-4 p-4 rounded-2xl bg-black hover:bg-gray-800 transition-all duration-300 text-center cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
-                      <Typography className="text-white font-bold">
-                        View All {totalResults} Results
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Fade>
-              )}
-            </Box>
-          )}
-
-          {/* No Results State */}
-          {!isSearching &&
-            searchQuery.length >= 2 &&
-            searchResults.length === 0 &&
-            !error && (
-              <Fade in timeout={500}>
-                <Box className="flex flex-col items-center justify-center py-20 text-center">
-                  <Box className="w-20 h-20 mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                    <Search
-                      className="w-10 h-10 text-gray-300"
-                      strokeWidth={2}
-                    />
-                  </Box>
-                  <Typography
-                    variant="h6"
-                    className="font-semibold text-black mb-2"
-                  >
-                    No products found
-                  </Typography>
-                  <Typography className="text-sm text-gray-500">
-                    Try searching with different keywords
-                  </Typography>
-                </Box>
-              </Fade>
+                <X size={16} />
+              </button>
             )}
-        </Box>
-      </Box>
+
+            {loading && (
+              <div className="absolute right-4">
+                <Loader2 className="w-5 h-5 text-teal-600 animate-spin" />
+              </div>
+            )}
+          </form>
+
+          {/* Quick Tags underneath input */}
+        </div>
+
+        {/* --- Grid Content --- */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
+          {/* 1. Empty State */}
+          {!query && (
+            <div className="h-full flex flex-col items-center justify-center opacity-40">
+              <Star className="w-16 h-16 text-stone-300 mb-4" strokeWidth={1} />
+              <p className="text-stone-400 font-serif text-lg">
+                Type to explore our collection
+              </p>
+            </div>
+          )}
+
+          {/* 2. Results Grid */}
+          {results.length > 0 && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">
+                  Top Results for "{query}"
+                </p>
+                <span className="text-xs text-stone-400">
+                  {totalResults} items
+                </span>
+              </div>
+
+              {/* THE GRID */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {results.map((product) => (
+                  <GridCard
+                    key={product.id}
+                    item={product}
+                    onClick={() => handleProductClick(product.id)}
+                  />
+                ))}
+              </div>
+
+              {totalResults > results.length && (
+                <button
+                  onClick={handleSubmit}
+                  className="w-full py-4 bg-white border border-stone-200 rounded-xl text-sm font-bold text-stone-600 hover:text-teal-700 hover:border-teal-200 shadow-sm transition-all flex items-center justify-center gap-2"
+                >
+                  View All Products
+                  <ArrowRight size={16} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* 3. No Results */}
+          {!loading && query && results.length === 0 && !error && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <ShoppingBag
+                className="w-12 h-12 text-stone-200 mb-4"
+                strokeWidth={1}
+              />
+              <p className="text-stone-900 font-medium">No results found</p>
+            </div>
+          )}
+        </div>
+
+        {/* --- Footer --- */}
+        <div className="p-4 bg-white border-t border-stone-100 flex justify-between items-center">
+          <span className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">
+            Krambica Search
+          </span>
+          <button
+            onClick={onClose}
+            className="text-xs font-medium text-stone-500 hover:text-stone-900"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </Dialog>
   );
 }

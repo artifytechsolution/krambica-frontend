@@ -30,6 +30,9 @@ import {
   Check,
   Quote,
   ArrowLeft,
+  PlusSquare,
+  ScanLine,
+  MoreVertical,
 } from "lucide-react";
 import HeroCarousel from "./components/HeroCarousel";
 import IntroSection from "./components/Intriduction";
@@ -37,6 +40,7 @@ import TrendingSection from "./components/TrendingSection";
 import BestsellerSection from "./components/BestsellerSection";
 import CollectionsSlider from "./components/CollectionsSlider";
 import VideoCarousel from "./components/VideoCarousel";
+import { Share } from "next/font/google";
 
 // Add global styles at the top level
 const globalStyles = `
@@ -554,6 +558,362 @@ const DownloadAppSection = () => {
     </section>
   );
 };
+
+function InstallScannerModal({ isOpen, onClose }) {
+  const [activeTab, setActiveTab] = useState("ios"); // 'ios' or 'android'
+  const [currentUrl, setCurrentUrl] = useState("");
+
+  // Get the actual website URL to generate the QR code
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentUrl(window.location.origin);
+    }
+  }, []);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Modal Content */}
+      <div className="relative bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row animate-in fade-in zoom-in-95 duration-300">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors z-10"
+        >
+          <X size={20} className="text-gray-600" />
+        </button>
+
+        {/* Left Side: QR Code Area */}
+        <div className="w-full md:w-1/2 bg-gray-50 p-8 flex flex-col items-center justify-center text-center border-b md:border-b-0 md:border-r border-gray-100">
+          <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-6">
+            {/* Uses a public API to generate QR code for your current site */}
+            {currentUrl && (
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+                  currentUrl
+                )}&color=115e59`} // Teal color code
+                alt="Scan to install"
+                className="w-48 h-48 object-contain"
+              />
+            )}
+          </div>
+
+          <h3 className="font-serif text-xl text-gray-900 font-bold mb-2">
+            Scan to Download
+          </h3>
+          <p className="text-sm text-gray-500 max-w-xs mx-auto">
+            Open your phone camera and scan the QR code to open Krambica on your
+            mobile device.
+          </p>
+        </div>
+
+        {/* Right Side: Instructions */}
+        <div className="w-full md:w-1/2 p-8 flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h4 className="font-sans text-xs font-bold text-gray-400 uppercase tracking-widest">
+              Installation Guide
+            </h4>
+          </div>
+
+          {/* Device Tabs */}
+          <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+            <button
+              onClick={() => setActiveTab("ios")}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                activeTab === "ios"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              iOS (iPhone)
+            </button>
+            <button
+              onClick={() => setActiveTab("android")}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                activeTab === "android"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Android
+            </button>
+          </div>
+
+          {/* Step Content */}
+          <div className="flex-1 space-y-4">
+            {activeTab === "ios" ? (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-sm">
+                    1
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Open the camera app and scan the code to open the site in{" "}
+                    <strong>Safari</strong>.
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-sm">
+                    2
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Tap the <strong>Share</strong> button in the bottom bar.
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-sm">
+                    3
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Scroll down and select{" "}
+                    <PlusSquare
+                      size={14}
+                      className="inline mx-1 text-gray-900"
+                    />{" "}
+                    <strong>Add to Home Screen</strong>.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 font-bold text-sm">
+                    1
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Scan the code to open the site in <strong>Chrome</strong>.
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 font-bold text-sm">
+                    2
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Tap the{" "}
+                    <MoreVertical
+                      size={14}
+                      className="inline mx-1 text-gray-600"
+                    />{" "}
+                    <strong>Menu</strong> (three dots) in the top right.
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 font-bold text-sm">
+                    3
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Select{" "}
+                    <Download size={14} className="inline mx-1 text-gray-600" />{" "}
+                    <strong>Install App</strong> or "Add to Home Screen".
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-gray-100 flex items-center gap-2 justify-center text-xs text-gray-400">
+            <Smartphone size={14} />
+            <span>Native Experience</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+const DownloadAppSection1 = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [showScanner, setShowScanner] = useState(false); // <-- State for Modal
+
+  useEffect(() => {
+    setIsClient(true);
+    // ... (Your existing PWA detection logic remains the same) ...
+    const checkStandalone = () => {
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true;
+      if (isStandalone) setIsInstalled(true);
+    };
+    checkStandalone();
+
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    setIsIOS(isIosDevice);
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () =>
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setDeferredPrompt(null);
+      setIsInstallable(false);
+    }
+  };
+
+  if (!isClient) return null;
+
+  return (
+    <>
+      <section className="py-24 bg-white border-t border-gray-100 overflow-hidden relative">
+        {/* ... (Styles and Backgrounds remain the same) ... */}
+        <style jsx global>{`
+          @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap");
+          .font-serif {
+            font-family: "Playfair Display", serif;
+          }
+          .font-sans {
+            font-family: "Inter", sans-serif;
+          }
+        `}</style>
+
+        {/* Background Ambience */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-teal-50/50 rounded-full blur-3xl" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-gray-50/80 rounded-full blur-3xl" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* LEFT COLUMN */}
+            <div className="space-y-8 text-center lg:text-left order-2 lg:order-1">
+              {/* ... (Header Text logic remains the same) ... */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gray-50 border border-gray-100 rounded-full">
+                <span className="w-2 h-2 bg-teal-600 rounded-full animate-pulse"></span>
+                <span className="font-sans text-[10px] font-bold tracking-widest uppercase text-gray-500">
+                  Native App Experience
+                </span>
+              </div>
+              <h2 className="font-serif text-4xl lg:text-6xl text-gray-900 leading-[1.1]">
+                The Boutique, <br />
+                <span className="italic text-gray-400 font-light">
+                  in your pocket.
+                </span>
+              </h2>
+              <p className="font-sans text-lg text-gray-500 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                Unlock the complete Krambica experience. Get early access to new
+                saree drops, seamless checkout, and exclusive app-only
+                discounts.
+              </p>
+
+              {/* ACTION AREA */}
+              <div className="pt-8 flex flex-col sm:flex-row items-center gap-5 justify-center lg:justify-start min-h-[120px]">
+                {/* 1. App Installed */}
+                {isInstalled ? (
+                  <div className="bg-teal-50 text-teal-800 px-8 py-4 rounded-full font-semibold flex items-center gap-3 cursor-default border border-teal-100 shadow-sm">
+                    <Check size={20} /> <span>App Installed</span>
+                  </div>
+                ) : (
+                  <>
+                    {/* 2. Android/Desktop Browser Install Button */}
+                    {isInstallable && (
+                      <button
+                        onClick={handleInstallClick}
+                        className="group bg-gray-900 text-white px-8 py-4 rounded-full font-semibold flex items-center gap-3 hover:bg-teal-700 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-95 active:translate-y-0"
+                      >
+                        <Download
+                          size={20}
+                          className="group-hover:animate-bounce"
+                        />
+                        <span>Install App</span>
+                      </button>
+                    )}
+
+                    {/* 3. iOS Instructions */}
+                    {isIOS && !isInstalled && (
+                      <div className="bg-gray-50 border border-gray-200 p-4 rounded-2xl flex flex-col gap-2 max-w-xs text-left shadow-sm">
+                        <div className="text-xs font-bold text-gray-900 flex items-center gap-2">
+                          <Smartphone size={14} /> Install on iOS
+                        </div>
+                        <p className="text-[10px] text-gray-500">
+                          Tap{" "}
+                          {/* <Share size={10} className="inline text-blue-500" />{" "} */}
+                          <strong>Share</strong>, then{" "}
+                          <strong>Add to Home Screen</strong>.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 4. Desktop Scanner Trigger (NEW) */}
+                    {!isInstallable && !isIOS && !isInstalled && (
+                      <button
+                        onClick={() => setShowScanner(true)} // <-- Open Modal
+                        className="hidden lg:flex items-center gap-5 bg-white p-3 pr-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-teal-200 transition-all cursor-pointer text-left group"
+                      >
+                        <div className="bg-gray-900 p-3 rounded-xl shadow-inner group-hover:bg-teal-700 transition-colors">
+                          <QrCode size={32} className="text-white" />
+                        </div>
+                        <div>
+                          <p className="font-sans text-xs font-bold text-gray-900 uppercase tracking-wider mb-1 flex items-center gap-2">
+                            Scan to Download{" "}
+                            <ScanLine
+                              size={14}
+                              className="text-gray-400 group-hover:text-teal-600"
+                            />
+                          </p>
+                          <p className="font-sans text-[10px] text-gray-400">
+                            For iOS & Android
+                          </p>
+                        </div>
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN (Phone Image) */}
+            <div className="order-1 lg:order-2 flex justify-center lg:justify-end relative perspective-[2000px]">
+              {/* ... (Existing Phone Mockup Code) ... */}
+              <div className="relative w-[300px] h-[600px] bg-gray-900 rounded-[3rem] p-3 shadow-2xl border-[6px] border-gray-900 ring-1 ring-gray-800 z-10 transform rotate-y-[-10deg] hover:rotate-y-0 transition-transform duration-700 ease-out">
+                <div className="h-full w-full bg-white rounded-[2.5rem] overflow-hidden flex flex-col relative">
+                  <div className="absolute top-0 w-full h-7 z-30 flex justify-center items-end bg-white/90 backdrop-blur-sm">
+                    <div className="w-20 h-5 bg-black rounded-b-xl"></div>
+                  </div>
+                  {/* Simplified Image for Brevity */}
+                  <img
+                    src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&h=800&fit=crop&q=85"
+                    className="w-full h-full object-cover"
+                    alt="App Preview"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* RENDER THE MODAL */}
+      <InstallScannerModal
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+      />
+    </>
+  );
+};
+
 // Floating Action Buttons
 const FloatingButtons = () => {
   const [showChat, setShowChat] = useState(false);
@@ -793,9 +1153,10 @@ const HomeComponent = () => {
         <TrendingSection />
         <BestsellerSection />
         <CollectionsSlider />
-        <TestimonialsSection />
+        {/* <TestimonialsSection /> */}
         <VideoCarousel />
         <DownloadAppSection />
+        <DownloadAppSection1 />
         <FloatingButtons />
         <ScrollToTop />
       </div>
